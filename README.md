@@ -8,7 +8,7 @@ H εργασία έγινε από τους:
 Rodica Bulgac		: 1115201300269
 ```
 
-Git Repository: https://github.com/loukaspe/Vector-Searching-And-Clustering
+Git Repository: https://github.com/loukaspe/Vector-And-Polygonal-Curves-Searching-And-Clustering
 
 To πρόγραμμα υλοποιεί και το Α μέρος και το Β. \
 To πρόγραμμα τρέχει σύμφωνα με τις προδιαγραφές της εργασίας.
@@ -19,16 +19,37 @@ To πρόγραμμα τρέχει σύμφωνα με τις προδιαγρα
 - **make cube** _Compile Hypercube part (A MEROS)_
 - **make cluster** _Compile Clustering part (B MEROS)_
 - **make clean** _Clean all object and output files_
-- **./lsh -i input_small_id -q query_small_id -k 4 -L 5 -o output.txt -N 1 -R 10000**
-  _Run A MEROS part a._
-- **./cube -i input_small_id -q query_small_id -k 14 -M 10 -probes 2 -o output.txt -N 1 -R 10000**
-  _Run A MEROS part b._
-- **./cluster -i input_small_id -c cluster.conf -o output.txt -complete -m Classic**
-  _Run B MEROS with Lloyd_
-- **./cluster -i input_small_id -c cluster.conf -o output.txt -complete -m LSH**
-  _Run B MEROS with LSH_
-- **./cluster -i input_small_id -c cluster.conf -o output.txt -complete -m Hypercube**
-  _Run B MEROS with Hypercube_
+
+**Παραδοχή:**
+Για λόγους ταχύτητας οι αλγόριθμοι που θα δοθούν στην γραμμή εντολών θα είναι σε μία λέξη, πχ
+'Mean_Vector' αντί για 'Mean Vector'.
+
+_Search LSH_
+`-i input_small_id -q query_small_id -o output.txt -k 4 -L 5 -algorithm LSH`
+
+_Search Cube_
+`-i input_small_id -q query_small_id -o output.txt -k 14 -M 10 -probes 2 -algorithm Hypercube`
+
+_Search Frechet Discrete_
+`-i input_small_id -q query_small_id -o output.txt -algorithm Frechet -delta 1 -metric discrete`
+
+_Search Frechet Continuous_
+`-i input_small_id -q query_small_id -o output.txt -algorithm Frechet -delta 1 -metric continuous`
+
+_Cluster Classic Mean_Vector_
+`-i input_small_id -c cluster.conf -o output.txt -complete false -silhouette false -update Mean_Vector -assignment Classic`
+
+_Cluster LSH_Vector Mean_Vector_
+`-i input_small_id -c cluster.conf -o output.txt -complete false -silhouette false -update Mean_Vector -assignment LSH`
+
+_Cluster Hypercube Mean_Vector_
+`-i input_small_id -c cluster.conf -o output.txt -complete false -silhouette false -update Mean_Vector -assignment Hypercube`
+
+_Cluster Classic Mean_Curve_
+`-i input_small_id -c cluster.conf -o output.txt -complete false -silhouette false -update Mean_Frechet -assignment Classic`
+
+_Cluster LSH_Frechet Mean_Curve_
+`-i input_small_id -c cluster.conf -o output.txt -complete false -silhouette false -update Mean_Frechet -assignment LSH_Frechet`
 
 **Γενική Περιγραφή**
 
