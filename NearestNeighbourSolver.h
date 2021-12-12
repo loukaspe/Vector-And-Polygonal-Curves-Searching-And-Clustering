@@ -3,6 +3,7 @@
 
 #include "DataSet.h"
 #include "HashTable.h"
+#include "HashTableCube.h"
 
 
 class NearestNeighbourSolver {
@@ -39,15 +40,16 @@ public:
 
     vector<NearestNeighbourSolver::NearestNeighbor> * lsh(unsigned N, int nohashtables, int T, int noFunctions, int W, int t[]);
 
-    vector<NearestNeighbourSolver::NearestNeighbor> * cube(unsigned N, int no_of_g, int max_points_to_control, int probes, int T, int noFunctions, int W, int t[]);
+    vector<NearestNeighbourSolver::NearestNeighbor> * cube(unsigned N, int max_points_to_control, int probes, int noFunctions, int W, int t[]);
 
     HashTable * prepareHashtables(int nohashtables, int T, int noFunctions, int W);
 
     vector<NearestNeighbourSolver::NearestNeighbor> * lsh(HashTable * hashtables, DataSet & query, int nohashtables, int T, int noFunctions, int W);
 
-    HashTable * prepareHyperCube(int no_of_g, int T, int noFunctions, int W);
+    HashTableCube * prepareHyperCube(int no_of_g, int T, int noFunctions, int W);
 
-    vector<NearestNeighbourSolver::NearestNeighbor> * cube(HashTable * hashtables, DataSet & query, int no_of_g, int max_points_to_control, int probes, int T, int noFunctions, int W);
+    vector<NearestNeighbourSolver::NearestNeighbor> * cube(HashTableCube * hashtables, DataSet & query, int no_of_g, int max_points_to_control, int probes, int T, int noFunctions, int W);
+
 };
 
 #endif /* NEARESTNEIGHBOUR_H */

@@ -424,7 +424,7 @@ ClusteringSolver::Cluster * ClusteringSolver::cube(int clusters, int t[], int nu
 
     NearestNeighbourSolver solver(input);
 
-    HashTable * hashtables = solver.prepareHyperCube(no_of_g, T, number_of_vector_hash_functions, W);
+    HashTableCube * hashtables = solver.prepareHyperCube(no_of_g, T, number_of_vector_hash_functions, W);
 
     auto start = chrono::steady_clock::now();
 

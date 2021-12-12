@@ -1,6 +1,7 @@
 #include "NearestNeighbourSolver.h"
 #include "DistanceCalculator.h"
 #include "HashTable.h"
+#include "HashTableCube.h"
 
 #include <algorithm>
 #include <chrono>
@@ -109,7 +110,7 @@ vector<NearestNeighbourSolver::NearestNeighbor> * NearestNeighbourSolver::lsh(un
     return data;
 }
 
-vector<NearestNeighbourSolver::NearestNeighbor> * NearestNeighbourSolver::cube(unsigned N, int no_of_g, int max_points_to_control, int probes, int T, int noFunctions, int W, int t[]) {
+vector<NearestNeighbourSolver::NearestNeighbor> * NearestNeighbourSolver::cube(unsigned N, int max_points_to_control, int probes, int noFunctions, int W, int t[]) {
     unsigned q = query.lines.size();
     unsigned d = input.lines[0].data.size();
 
@@ -117,9 +118,9 @@ vector<NearestNeighbourSolver::NearestNeighbor> * NearestNeighbourSolver::cube(u
 
     DistanceCalculator calc(false);
 
-    HashTable hashtables[1];
+    HashTableCube hashtables[1];
 
-    hashtables[0].setup(T, noFunctions, W, d);
+    hashtables[0].setup(noFunctions, W, d);
 
     for (unsigned int i = 0; i < input.lines.size(); i++) {
         hashtables[0].add(&input.lines[i]);
@@ -131,7 +132,7 @@ vector<NearestNeighbourSolver::NearestNeighbor> * NearestNeighbourSolver::cube(u
 
         auto start = chrono::steady_clock::now();
 
-        set<int> offsets = hashtables[0].getNeighbors(query.lines[i]);
+        set<int> offsets = hashtables[0].getNeighbors(query.lines[i], probes);
 
         for (auto x : offsets) {
             hits.insert(x);
@@ -181,13 +182,13 @@ HashTable * NearestNeighbourSolver::prepareHashtables(int nohashtables, int T, i
 }
 
 
-HashTable * NearestNeighbourSolver::prepareHyperCube(int no_of_g, int T, int noFunctions, int W) {
+HashTableCube * NearestNeighbourSolver::prepareHyperCube(int no_of_g, int T, int noFunctions, int W) {
     unsigned q = query.lines.size();
     unsigned d = input.lines[0].data.size();
 
-    HashTable * hashtables = new HashTable[1];
+    HashTableCube * hashtables = new HashTableCube[1];
 
-    hashtables[0].setup(T, noFunctions, W, d);
+    hashtables[0].setup(noFunctions, W, d);
 
     for (unsigned int i = 0; i < input.lines.size(); i++) {
         hashtables[0].add(&input.lines[i]);
@@ -229,8 +230,7 @@ vector<NearestNeighbourSolver::NearestNeighbor> * NearestNeighbourSolver::lsh(Ha
     return data;
 }
 
-
-vector<NearestNeighbourSolver::NearestNeighbor> *  NearestNeighbourSolver::cube(HashTable * hashtables, DataSet & query, int no_of_g, int max_points_to_control, int probes, int T, int noFunctions, int W) {
+vector<NearestNeighbourSolver::NearestNeighbor> * NearestNeighbourSolver::cube(HashTableCube * hashtables, DataSet & query, int no_of_g, int max_points_to_control, int probes, int T, int noFunctions, int W) {
     unsigned q = query.lines.size();
     unsigned d = input.lines[0].data.size();
 
@@ -240,7 +240,7 @@ vector<NearestNeighbourSolver::NearestNeighbor> *  NearestNeighbourSolver::cube(
 
     for (unsigned int i = 0; i < query.lines.size(); i++) {
         set<int> hits;
-        set<int> offsets = hashtables[0].getNeighbors(query.lines[i]);
+        set<int> offsets = hashtables[0].getNeighbors(query.lines[i], probes);
 
         for (auto x : offsets) {
             hits.insert(x);

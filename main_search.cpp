@@ -96,9 +96,7 @@ int main(int argc, char** argv) {
     if (parser.algorithm == "Hypercube") {
         cout << "Cube running ... " << endl;
 
-        int no_of_g = (int) log2(inputReader.set.lines.size());
-
-        vector<NearestNeighbourSolver::NearestNeighbor> * result_cube = solver.cube(parser.no_nearest_neighbors, no_of_g, parser.max_points_to_control, parser.probes, parser.T, parser.noFunctions, parser.W, t_algorithm);
+        vector<NearestNeighbourSolver::NearestNeighbor> * result_cube = solver.cube(parser.no_nearest_neighbors, parser.max_points_to_control, parser.probes, parser.noFunctions, parser.W, t_algorithm);
 
         Logger *logger = new Logger(parser.outputfile);
         stringstream ss;

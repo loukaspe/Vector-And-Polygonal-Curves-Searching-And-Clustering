@@ -13,9 +13,9 @@
 
 using namespace std;
 
-void log(stringstream *logs, Logger* logger);
+static void log(stringstream *logs, Logger* logger);
 
-int main(int argc, char** argv) {
+int main_cube(int argc, char** argv) {
 
     CommandLineParser parser;
 
@@ -38,15 +38,12 @@ int main(int argc, char** argv) {
 
     int t_bf[queryReader.set.lines.size()];
     int t_cube[queryReader.set.lines.size()];
-    int no_of_g = (int) log2(inputReader.set.lines.size());
-
-    parser.T = (int) pow(2, no_of_g);
 
     cout << "Brute force running ... " << endl;
     vector<NearestNeighbourSolver::NearestNeighbor> * result_bf = solver.bruteForce(parser.no_nearest_neighbors, t_bf);
 
     cout << "Cube running ... " << endl;
-    vector<NearestNeighbourSolver::NearestNeighbor> * result_cube = solver.cube(parser.no_nearest_neighbors, no_of_g, parser.max_points_to_control, parser.probes, parser.T, parser.noFunctions, parser.W, t_cube);
+    vector<NearestNeighbourSolver::NearestNeighbor> * result_cube = solver.cube(parser.no_nearest_neighbors, parser.max_points_to_control, parser.probes, parser.noFunctions, parser.W, t_cube);
 
     Logger *logger = new Logger(parser.outputfile);
     stringstream ss;

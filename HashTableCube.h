@@ -22,18 +22,16 @@ public:
     virtual ~HashTableCube();
 
     vector<vector<HashItem>> table;
-    
-    HashFunctionG * g;
-    HashFunctionH ** h;
+
+    HashFunctionH * h;
     HashFunctionF * f;
     int k;
     int T;
-    int no_of_g;
-            
-    void setup(int t, int no_of_g, int k, int W, int d);
-    
+
+    void setup(int k, int W, int d);
+
     void add(DataLine * line);
-    
+
     set<int> getNeighbors(DataLine & query, int probes);
 private:
     vector<int> getRelativeBuckets(int x, int probes, int bits);
