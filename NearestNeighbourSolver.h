@@ -50,6 +50,12 @@ public:
 
     vector<NearestNeighbourSolver::NearestNeighbor> * cube(HashTableCube * hashtables, DataSet & query, int no_of_g, int max_points_to_control, int probes, int T, int noFunctions, int W);
 
+    // Frechet
+    vector<NearestNeighbourSolver::NearestNeighbor> * frechet(unsigned N, int nohashtables, int T, int noFunctions, int W, int t[], string metric, double delta);
+
+    vector<NearestNeighbourSolver::NearestNeighbor> * frechet(HashTable * hashtables, DataSet & query, int nohashtables, int T, int noFunctions, int W, string metric, double delta);
+
+
 };
 
 #endif /* NEARESTNEIGHBOUR_H */

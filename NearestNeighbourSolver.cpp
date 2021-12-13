@@ -2,6 +2,7 @@
 #include "DistanceCalculator.h"
 #include "HashTable.h"
 #include "HashTableCube.h"
+#include "HashTableCurve.h"
 
 #include <algorithm>
 #include <chrono>
@@ -163,6 +164,7 @@ vector<NearestNeighbourSolver::NearestNeighbor> * NearestNeighbourSolver::cube(u
 
 
 // clustering
+
 HashTable * NearestNeighbourSolver::prepareHashtables(int nohashtables, int T, int noFunctions, int W) {
     unsigned d = input.lines[0].data.size();
 
@@ -180,7 +182,6 @@ HashTable * NearestNeighbourSolver::prepareHashtables(int nohashtables, int T, i
 
     return hashtables;
 }
-
 
 HashTableCube * NearestNeighbourSolver::prepareHyperCube(int no_of_g, int T, int noFunctions, int W) {
     unsigned q = query.lines.size();
@@ -258,3 +259,75 @@ vector<NearestNeighbourSolver::NearestNeighbor> * NearestNeighbourSolver::cube(H
 
     return data;
 }
+
+// Frechet
+
+vector<NearestNeighbourSolver::NearestNeighbor> * NearestNeighbourSolver::frechet(unsigned N, int nohashtables, int T, int noFunctions, int W, int t[], string metric, double delta) {
+    unsigned q = query.lines.size();
+    unsigned d = input.lines[0].data.size();
+
+    vector<NearestNeighbor> * data = new vector<NearestNeighbor>[q];
+
+    DistanceCalculator calc(false);
+
+
+    HashTableCurve hashtables[nohashtables];
+
+    for (int i = 0; i < nohashtables; i++) {
+        hashtables[i].setup(T, noFunctions, W, d, delta);
+    }
+
+    for (unsigned int i = 0; i < input.lines.size(); i++) {
+        input.lines[i].curve.setup(input.lines[i].data);
+    }
+
+    for (unsigned int i = 0; i < query.lines.size(); i++) {
+        query.lines[i].curve.setup(query.lines[i].data);
+    }
+
+    for (unsigned int i = 0; i < input.lines.size(); i++) {
+        for (int l = 0; l < nohashtables; l++) {
+            hashtables[l].add(&input.lines[i]);
+        }
+    }
+
+
+    for (unsigned int i = 0; i < query.lines.size(); i++) {
+        set<int> hits;
+
+        auto start = chrono::steady_clock::now();
+
+        for (int l = 0; l < nohashtables; l++) {
+            set<int> offsets = hashtables[l].getNeighbors(query.lines[i]);
+
+            for (auto x : offsets) {
+                hits.insert(x);
+            }
+        }
+
+        for (auto offset : hits) {
+            double dist = calc.calculateDistance(query.lines[i], input.lines[offset]);
+
+            NearestNeighbor n(offset, dist);
+            data[i].push_back(n);
+
+        }
+
+        sort(data[i].begin(), data[i].end(), compareNearestNeighbor);
+
+        if (data[i].size() > N) {
+            data[i].resize(N, NearestNeighbor(-1, -1));
+        }
+
+        auto end = chrono::steady_clock::now();
+
+        t[i] = chrono::duration_cast<chrono::milliseconds>(end - start).count();
+    }
+
+    return data;
+}
+
+vector<NearestNeighbourSolver::NearestNeighbor> * NearestNeighbourSolver::frechet(HashTable * hashtables, DataSet & query, int nohashtables, int T, int noFunctions, int W, string metric, double delta) {
+
+}
+

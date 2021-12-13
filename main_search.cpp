@@ -136,6 +136,47 @@ int main(int argc, char** argv) {
         }
     }
 
+    if (parser.algorithm == "Frechet") {
+        cout << "Frechet running ... " << endl;
+        vector<NearestNeighbourSolver::NearestNeighbor> * result_frechet = solver.frechet(parser.no_nearest_neighbors, parser.nohashtables, parser.T, parser.noFunctions, parser.W, t_algorithm, parser.metric, parser.delta);
+
+        for (unsigned int i = 0; i < queryReader.set.lines.size(); i++) {
+            cout << "_____________________________________________________ \n";
+            ss << "Query #" << i << ": " << endl;
+            log(&ss, logger);
+
+            for (int j = 0; j < parser.no_nearest_neighbors; j++) {
+                if ((unsigned) j < result_frechet[i].size()) {
+                    ss << "Frechet  Nearest neighbor-" << j << ":" << "\t" << result_frechet[i][j].index << endl;
+                    log(&ss, logger);
+
+                    ss << "distanceLSH" << ":" << "\t" << sqrt(result_frechet[i][j].distance) << endl;
+                    log(&ss, logger);
+
+
+                    ss << "tFrechet : " << t_algorithm[i] << " ms " << endl;
+                    log(&ss, logger);
+                }
+
+                ss << "True Nearest neighbor-" << j << ":" << "\t" << result_bf[i][j].index << endl;
+                log(&ss, logger);
+
+                ss << "distanceTrue" << ":" << "\t" << sqrt(result_bf[i][j].distance) << endl;
+                log(&ss, logger);
+
+                ss << "tTrue : " << t_bf[i] << " ms " << endl;
+                log(&ss, logger);
+
+
+                double ratio = sqrt(result_frechet[i][j].distance) / sqrt(result_bf[i][j].distance);
+
+                if (ratio > max_ratio) {
+                    max_ratio = ratio;
+                }
+            }
+        }
+    }
+
 
     double avg_t_bf = 0.0;
     double avg_t_algorithm = 0.0;
