@@ -49,16 +49,24 @@ int main(int argc, char** argv) {
 
     int t[1] = { 0 };
 
-    if (parser.method == "Classic" || parser.method == "classic") {
-        result = solver.lloyd(number_of_clusters, t);
+    if (parser.assignment == "Classic" || parser.assignment == "classic") {
+        if (parser.update == "Mean_Vector") {
+            result = solver.lloyd(number_of_clusters, t);
+        } else {
+            result = solver.lloyd_with_curves(number_of_clusters, t);
+        }
     }
 
-    if (parser.method == "LSH" || parser.method == "lsh") {
+    if (parser.assignment == "LSH" || parser.assignment == "lsh") {
         result = solver.lsh(number_of_clusters, t, number_of_vector_hash_tables, number_of_vector_hash_functions, W);
     }
 
-    if (parser.method == "Hypercube" || parser.method == "hypercube") {
+    if (parser.assignment == "Hypercube" || parser.assignment == "hypercube") {
         result = solver.cube(number_of_clusters, t, number_of_vector_hash_tables, number_of_vector_hash_functions, W, max_number_M_hypercube, number_of_hypercube_dimensions, number_of_probes);
+    }
+
+    if (parser.assignment == "LSH_Frechet") {
+        // TODO
     }
 
     solver.silhouette(result, number_of_clusters, t);

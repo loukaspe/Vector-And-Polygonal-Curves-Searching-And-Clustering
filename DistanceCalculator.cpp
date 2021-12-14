@@ -3,7 +3,7 @@
 
 #include <cmath>
 
-DistanceCalculator::DistanceCalculator(bool calculate_root):calculate_root(calculate_root) {
+DistanceCalculator::DistanceCalculator(bool calculate_root) : calculate_root(calculate_root) {
 
 }
 
@@ -17,7 +17,7 @@ float DistanceCalculator::calculateDistance(DataLine & a, DataLine & b) {
 
     float dist = 0.0f;
 
-    for (int i=0;i<d1;i++) {
+    for (int i = 0; i < d1; i++) {
         dist = dist + (a.data[i] - b.data[i])*(a.data[i] - b.data[i]);
     }
 
@@ -28,11 +28,13 @@ float DistanceCalculator::calculateDistance(DataLine & a, DataLine & b) {
     return dist;
 }
 
-
-
-
-
 float DistanceCalculator::calculateDistanceContinuous(DataCurve &a, DataCurve&b) {
+    // TODO
+
+    // files from fred:
+
+    // repo: https://github.com/derohde/Fred/blob/master/src/frechet.cpp
+    //  types.hpp, config.cpp/hpp, curve.cpp/hpp, frechet.cpp/hpp, interval.cpp/hpp, point.cpp/hpp, simplification.cpp/hpp.
     return 0.0f;
 }
 
@@ -51,7 +53,7 @@ float DistanceCalculator::calculateDistance(DataCurve &a, DataCurve&b) { // Disc
             float x2 = b.x[j];
             float y2 = b.y[j];
 
-            dists[i][j] = (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2);
+            dists[i][j] = (x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2);
         }
     }
 
@@ -60,15 +62,18 @@ float DistanceCalculator::calculateDistance(DataCurve &a, DataCurve&b) { // Disc
             if (i == 0 and j == 0) {
                 dists_a[i][j] = dists[i][j];
             } else if (i == 0 and j > 0) {
-                dists_a[i][j] = max(dists_a[i][j-1], dists[i][j]);
+                dists_a[i][j] = max(dists_a[i][j - 1], dists[i][j]);
             } else if (i > 0 and j == 0) {
-                dists_a[i][j] = max(dists_a[i-1][j], dists[i][j]);
+                dists_a[i][j] = max(dists_a[i - 1][j], dists[i][j]);
             } else {
-                dists_a[i][j] = max(min(min(dists_a[i-1][j], dists_a[i-1][j-1]), dists_a[i][j-1]), dists[i][j]);
+                dists_a[i][j] = max(min(min(dists_a[i - 1][j], dists_a[i - 1][j - 1]), dists_a[i][j - 1]), dists[i][j]);
             }
         }
     }
 
-    return sqrt(dists_a[curve1_complexity - 1][curve2_complexity - 1]);;
+    return sqrt(dists_a[curve1_complexity - 1][curve2_complexity - 1]);
+    ;
 }
+
+
 

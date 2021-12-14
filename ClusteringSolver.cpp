@@ -5,7 +5,7 @@
 
 #include "ClusteringSolver.h"
 
-ClusteringSolver::ClusteringSolver(DataSet & input, string outputfile) : input(input), outputFile(outputfile) {
+ClusteringSolver::ClusteringSolver(DataSet & input, string outputfile) : input(input) {
 
 }
 
@@ -65,7 +65,7 @@ void ClusteringSolver::print(ClusteringSolver::Cluster * initialState, int clust
             }
         }
 
-        ss << "\tclustering_time: " << t[i]  << endl;
+        ss << "\tclustering_time: " << t[i] << endl;
         log(&ss, logger);
 
         ss << "\tSilhoutte: " << initialState[i].silhouette << endl;
@@ -315,14 +315,14 @@ ClusteringSolver::Cluster * ClusteringSolver::lsh(int clusters, int t[], int num
 
             vector<NearestNeighbourSolver::NearestNeighbor> * result_lsh = solver.lsh(hashtables, query, number_of_vector_hash_tables, T, number_of_vector_hash_functions, W);
 
-//            cout << "result lsh " << R << endl;
+            //            cout << "result lsh " << R << endl;
 
             for (int cluster_id = 0; cluster_id < clusters; cluster_id++) {
                 unsigned j = 0;
 
                 cout << result_lsh[cluster_id].size() << endl;
                 while (j < result_lsh[cluster_id].size() && sqrt(result_lsh[cluster_id][j].distance) <= R) {
-//                    cout << "loop j = " << j << endl;
+                    //                    cout << "loop j = " << j << endl;
                     int index = result_lsh[cluster_id][j].index;
 
                     if (item_cluster[index] == -1) { // first time discovered
@@ -330,14 +330,14 @@ ClusteringSolver::Cluster * ClusteringSolver::lsh(int clusters, int t[], int num
                         item_distance[index] = result_lsh[cluster_id][j].distance;
                         item_loop_found[index] = R;
                         change = true;
-//                        cout << "change " << endl;
+                        //                        cout << "change " << endl;
                     } else if (item_cluster[index] == cluster_id) { // already discovered by me
                         // do nothing
-//                        cout << "nothing to me" << endl;
+                        //                        cout << "nothing to me" << endl;
                     } else { // discovered by someone else
                         if (item_loop_found[index] < R) {
                             // do nothing
-//                            cout << "nothing R" << endl;
+                            //                            cout << "nothing R" << endl;
                         } else if (item_loop_found[index] == R) {
                             double dist = calc.calculateDistance(input.lines[index], *(currentState[cluster_id].center));
                             if (dist < item_loop_found[index]) {
@@ -345,7 +345,7 @@ ClusteringSolver::Cluster * ClusteringSolver::lsh(int clusters, int t[], int num
                                 item_distance[index] = result_lsh[cluster_id][j].distance;
                                 item_loop_found[index] = R;
                                 change = true;
-//                                cout << "change " << endl;
+                                //                                cout << "change " << endl;
                             }
                         }
                     }
@@ -414,7 +414,7 @@ ClusteringSolver::Cluster * ClusteringSolver::cube(int clusters, int t[], int nu
     printInitialState(currentState, clusters);
 
     int n = (int) input.lines.size();
-    int no_of_g = (int)log2(input.lines.size());
+    int no_of_g = (int) log2(input.lines.size());
 
     // ---------------------------------------
     //          1b. Initialization - Hypercube
@@ -493,9 +493,9 @@ ClusteringSolver::Cluster * ClusteringSolver::cube(int clusters, int t[], int nu
             for (int cluster_id = 0; cluster_id < clusters; cluster_id++) {
                 unsigned j = 0;
 
-                cout << result_cube[cluster_id].size() << endl;
+                //                cout << result_cube[cluster_id].size() << endl;
                 while (j < result_cube[cluster_id].size() && sqrt(result_cube[cluster_id][j].distance) <= R) {
-//                    cout << "loop j = " << j << endl;
+                    //                    cout << "loop j = " << j << endl;
                     int index = result_cube[cluster_id][j].index;
 
                     if (item_cluster[index] == -1) { // first time discovered
@@ -503,14 +503,14 @@ ClusteringSolver::Cluster * ClusteringSolver::cube(int clusters, int t[], int nu
                         item_distance[index] = result_cube[cluster_id][j].distance;
                         item_loop_found[index] = R;
                         change = true;
-//                        cout << "change " << endl;
+                        //                        cout << "change " << endl;
                     } else if (item_cluster[index] == cluster_id) { // already discovered by me
                         // do nothing
-//                        cout << "nothing to me" << endl;
+                        //                        cout << "nothing to me" << endl;
                     } else { // discovered by someone else
                         if (item_loop_found[index] < R) {
                             // do nothing
-//                            cout << "nothing R" << endl;
+                            //                            cout << "nothing R" << endl;
                         } else if (item_loop_found[index] == R) {
                             double dist = calc.calculateDistance(input.lines[index], *(currentState[cluster_id].center));
                             if (dist < item_loop_found[index]) {
@@ -518,7 +518,7 @@ ClusteringSolver::Cluster * ClusteringSolver::cube(int clusters, int t[], int nu
                                 item_distance[index] = result_cube[cluster_id][j].distance;
                                 item_loop_found[index] = R;
                                 change = true;
-//                                cout << "change " << endl;
+                                //                                cout << "change " << endl;
                             }
                         }
                     }
@@ -616,7 +616,7 @@ void ClusteringSolver::silhouette(ClusteringSolver::Cluster * lastState, int clu
             }
 
             if (lastState[best_cluster].indices.size() > 0) {
-                a /= (lastState[best_cluster].indices.size() - 1);
+                a /= (lastState[best_cluster].indices.size());
             }
 
             // find avg distance from second best cluster points
@@ -648,4 +648,138 @@ void ClusteringSolver::silhouette(ClusteringSolver::Cluster * lastState, int clu
 
         lastState[best_cluster].silhouette = avg_s;
     }
+}
+
+ClusteringSolver::Cluster * ClusteringSolver::lloyd_with_curves(int clusters, int t[]) { // LLoyed/Mean curve
+    DistanceCalculator calc(false);
+
+    algorithm = "Lloyd";
+    // ----------------------------------
+    //          1. Initialization
+    // ----------------------------------
+    ClusteringSolver::Cluster * currentState = initialization_with_curves(clusters);
+
+    printInitialState(currentState, clusters);
+
+    int n = (int) input.lines.size();
+
+    auto start = chrono::steady_clock::now();
+
+    for (int counter = 0; counter < 20; counter++) { // Clustering loop
+        // ----------------------------------
+        //          2. Assignment
+        // ----------------------------------
+
+        cout << "Assignment ... " << endl;
+        for (int x = 0; x < n; x++) { // for each item
+            float mindist = FLT_MAX;
+            int mincluster = 0;
+
+            for (int y = 0; y < clusters; y++) { // for each cluster
+                double dist = calc.calculateDistance(input.lines[x].curve, (currentState[y].center->curve));
+                if (dist < mindist) {
+                    mindist = dist;
+                    mincluster = y;
+                }
+            }
+
+            currentState[mincluster].indices.push_back(x);
+        }
+
+        // ----------------------------------
+        //          3. Update
+        // ----------------------------------
+
+        if (counter < 19) {
+            ClusteringSolver::Cluster * nextState = update(currentState, clusters);
+
+            delete [] currentState;
+
+            currentState = nextState;
+        }
+    }
+
+    auto end = chrono::steady_clock::now();
+
+    t[0] = chrono::duration_cast<chrono::milliseconds>(end - start).count();
+
+    return currentState;
+}
+
+ClusteringSolver::Cluster * ClusteringSolver::lsh_with_curves(int clusters, int t[]) { // LSH Frechet/mean curve;
+
+}
+
+ClusteringSolver::Cluster * ClusteringSolver::initialization_with_curves(int clusters) {
+    int n = (int) input.lines.size();
+    int d = input.lines[0].getDimension();
+
+    cout << "Initialization ... " << endl;
+
+    ClusteringSolver::Cluster * initialState = new ClusteringSolver::Cluster[clusters]();
+
+    DistanceCalculator calc(false);
+
+    for (int i = 0; i < clusters; i++) {
+        if (i == 0) { // first centroid
+            int index = urandom(0, n - 1);
+            initialState[0].center = new DataLine();
+
+            for (int i = 0; i < d; i++) {
+                initialState[0].center->data.push_back(input.lines[index].data[i]);
+            }
+
+            cout << "Picked: " << index << endl;
+        } else {
+            float * pr = new float[n];
+
+            for (int x = 0; x < n; x++) { // for each item
+                float mindist = FLT_MAX;
+
+                for (int y = 0; y < i; y++) {
+                    double dist = calc.calculateDistance(input.lines[x].curve, initialState[y].center->curve);
+                    if (dist < mindist) {
+                        mindist = dist;
+                    }
+                }
+
+                if (x == 0) {
+                    pr[x] = mindist;
+                } else {
+                    pr[x] = mindist + pr[x - 1];
+                }
+            }
+
+            float min = 0.0f;
+            float max = pr[n - 1];
+
+            //            cout << "min: " << min << ", max: " << max << endl;
+
+            float r = urandomf(min, max);
+            int x;
+
+            for (x = 0; x < n; x++) { // for each item
+                if (r <= pr[x] && (x == 0 || pr[x - 1] < r)) {
+                    break;
+                }
+            }
+
+            int index = x;
+            initialState[i].center = new DataLine();
+
+            for (int j = 0; j < d; j++) {
+                initialState[i].center->data.push_back(input.lines[index].data[j]);
+            }
+
+            delete [] pr;
+
+            cout << "Picked: " << index << endl;
+        }
+    }
+
+    return initialState;
+}
+
+ClusteringSolver::Cluster * ClusteringSolver::update_with_curves(ClusteringSolver::Cluster * now, int clusters) {
+    // TODO
 }
