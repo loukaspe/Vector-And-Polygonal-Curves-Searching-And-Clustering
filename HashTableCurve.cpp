@@ -24,7 +24,7 @@ void HashTableCurve::setup(int t, int k, int W, int d, double delta) {
     h = new HashFunctionH[k];
 
     for (int i=0;i<k;i++) {
-        h[i].setup(W, d);
+        h[i].setup(W, d*2);
     }
 
     for (int i=0;i<t;i++) {
@@ -37,19 +37,20 @@ void HashTableCurve::setup(int t, int k, int W, int d, double delta) {
 void HashTableCurve::add(DataLine * line) {
     int hi[K] = { 0 };
 
-
+    HashItem item;
+    item.addr = line;
+    item.grid_curve = line->curve.snap(grid);
+    item.key.data = item.grid_curve.concatenate();
+    item.key.padding(line->getDimension()*2);
 
     for (int i=0;i<K;i++) {
-        hi[i] = h[i].value(*line);
+        hi[i] = h[i].value(item.key);
     }
 
     unsigned g_output = g.value(hi);
     unsigned bucket = g_output % T;
 
-    HashItem item;
     item.g = g_output;
-    item.addr = line;
-
 
     table[bucket].push_back(item);
 }
@@ -57,17 +58,22 @@ void HashTableCurve::add(DataLine * line) {
 set<int> HashTableCurve::getNeighbors(DataLine & query) {
     set<int> offsets;
 
+    HashItem queryitem;
+    queryitem.grid_curve = query.curve.snap(grid);
+    queryitem.key.data = queryitem.grid_curve.concatenate();
+    queryitem.key.padding(query.getDimension()*2);
+
     int hi[K] = { 0 };
 
     for (int i=0;i<K;i++) {
-        hi[i] = h[i].value(query);
+        hi[i] = h[i].value(queryitem.key);
     }
 
     unsigned g_output = g.value(hi);
     unsigned bucket = g_output % T;
 
     for (unsigned int i=0;i<table[bucket].size();i++) {
-        if (table[bucket][i].g == g_output) {
+        if (table[bucket][i].g == g_output && table[bucket][i].grid_curve.equals(queryitem.grid_curve)) {
             offsets.insert(table[bucket][i].addr->offset);
         }
     }

@@ -17,9 +17,11 @@ public:
     vector<float> y;
 
     void setup(vector<float> & data);
-    vector<float> flatten();
+    vector<float> concatenate();
 
     DataCurve snap(Grid & grid);
+
+    bool equals(DataCurve & other);
 private:
 
 };

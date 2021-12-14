@@ -5,13 +5,17 @@
 #include "DataLine.h"
 
 
-class DistanceCalculator {    
+class DistanceCalculator {
 public:
     const bool calculate_root;
-    
+
     DistanceCalculator(bool calculate_root);
-    
+
     float calculateDistance(DataLine & a, DataLine & b);
+
+    float calculateDistance(DataCurve &a, DataCurve&b);
+
+    float calculateDistanceContinuous(DataCurve &a, DataCurve&b);
 };
 
 #endif /* DISTANCECALCULATOR_H */

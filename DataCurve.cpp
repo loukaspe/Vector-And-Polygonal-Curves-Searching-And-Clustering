@@ -10,7 +10,7 @@ void DataCurve::setup(vector<float> & data) {
     }
 }
 
-vector<float> DataCurve::flatten() {
+vector<float> DataCurve::concatenate() {
     vector<float> vec;
 
     for (unsigned int i = 0; i < x.size(); i++) {
@@ -35,9 +35,31 @@ DataCurve DataCurve::snap(Grid & grid) {
         float snapped_x = floor((x[i] - tx) / delta + 1 / 2.0f) * delta + tx;
         float snapped_y = floor((y[i] - ty) / delta + 1 / 2.0f) * delta + ty;
 
-        gridcurve.x.push_back(snapped_x);
-        gridcurve.y.push_back(snapped_y);
+        if (gridcurve.x.size() == 0) {
+            gridcurve.x.push_back(snapped_x);
+            gridcurve.y.push_back(snapped_y);
+        } else {
+            int lastpos = gridcurve.x.size() - 1;
+
+            if (gridcurve.x[lastpos] != snapped_x && gridcurve.x[lastpos] != snapped_y) {
+                gridcurve.x.push_back(snapped_x);
+                gridcurve.y.push_back(snapped_y);
+            }
+        }
     }
 
     return gridcurve;
+}
+
+bool DataCurve::equals(DataCurve & other) {
+    if (this->x.size() != other.x.size() || this->y.size() != other.y.size()) {
+        return false;
+    }
+
+    for (unsigned int i = 0; i < x.size(); i++) {
+        if (this->x[i] != other.x[i] || this->y[i] != other.y[i]) {
+            return false;
+        }
+    }
+    return true;
 }

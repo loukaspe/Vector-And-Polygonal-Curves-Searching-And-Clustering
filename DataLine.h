@@ -17,6 +17,8 @@ public:
     DataCurve curve;
 
     int getDimension();
+
+    void padding(unsigned dimension);
 };
 
 #endif /* DATA_H */

@@ -16,6 +16,9 @@ class HashTableCurve {
     public:
         unsigned g;
         DataLine * addr;
+
+        DataCurve grid_curve;
+        DataLine key;
     };
 public:
     HashTableCurve();

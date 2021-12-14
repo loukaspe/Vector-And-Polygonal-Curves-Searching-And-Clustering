@@ -53,7 +53,7 @@ public:
     // Frechet
     vector<NearestNeighbourSolver::NearestNeighbor> * frechet(unsigned N, int nohashtables, int T, int noFunctions, int W, int t[], string metric, double delta);
 
-    vector<NearestNeighbourSolver::NearestNeighbor> * frechet(HashTable * hashtables, DataSet & query, int nohashtables, int T, int noFunctions, int W, string metric, double delta);
+//    vector<NearestNeighbourSolver::NearestNeighbor> * frechet(HashTable * hashtables, DataSet & query, int nohashtables, int T, int noFunctions, int W, string metric, double delta);
 
 
 };
