@@ -650,18 +650,21 @@ void ClusteringSolver::silhouette(ClusteringSolver::Cluster * lastState, int clu
     }
 }
 
+// ------------------------------------ Curves --------------------------------
+
 ClusteringSolver::Cluster * ClusteringSolver::lloyd_with_curves(int clusters, int t[]) { // LLoyed/Mean curve
     DistanceCalculator calc(false);
 
     algorithm = "Lloyd";
+
+    int n = (int) input.lines.size();
+
     // ----------------------------------
     //          1. Initialization
     // ----------------------------------
     ClusteringSolver::Cluster * currentState = initialization_with_curves(clusters);
 
     printInitialState(currentState, clusters);
-
-    int n = (int) input.lines.size();
 
     auto start = chrono::steady_clock::now();
 
@@ -690,8 +693,9 @@ ClusteringSolver::Cluster * ClusteringSolver::lloyd_with_curves(int clusters, in
         //          3. Update
         // ----------------------------------
 
+        break;
         if (counter < 19) {
-            ClusteringSolver::Cluster * nextState = update(currentState, clusters);
+            ClusteringSolver::Cluster * nextState = update_with_curves(currentState, clusters);
 
             delete [] currentState;
 
@@ -706,8 +710,9 @@ ClusteringSolver::Cluster * ClusteringSolver::lloyd_with_curves(int clusters, in
     return currentState;
 }
 
-ClusteringSolver::Cluster * ClusteringSolver::lsh_with_curves(int clusters, int t[]) { // LSH Frechet/mean curve;
-
+ClusteringSolver::Cluster * ClusteringSolver::lsh_frechet_with_curves(int clusters, int t[]) { // LSH Frechet/mean curve;
+    exit(0);
+    return 0;
 }
 
 ClusteringSolver::Cluster * ClusteringSolver::initialization_with_curves(int clusters) {
@@ -715,6 +720,10 @@ ClusteringSolver::Cluster * ClusteringSolver::initialization_with_curves(int clu
     int d = input.lines[0].getDimension();
 
     cout << "Initialization ... " << endl;
+
+    for (unsigned int i = 0; i < input.lines.size(); i++) {
+        input.lines[i].curve.setup(input.lines[i].data); // vector to curve
+    }
 
     ClusteringSolver::Cluster * initialState = new ClusteringSolver::Cluster[clusters]();
 
@@ -728,6 +737,8 @@ ClusteringSolver::Cluster * ClusteringSolver::initialization_with_curves(int clu
             for (int i = 0; i < d; i++) {
                 initialState[0].center->data.push_back(input.lines[index].data[i]);
             }
+
+            initialState[0].center->curve.setup(initialState[0].center->data);
 
             cout << "Picked: " << index << endl;
         } else {
@@ -771,6 +782,8 @@ ClusteringSolver::Cluster * ClusteringSolver::initialization_with_curves(int clu
                 initialState[i].center->data.push_back(input.lines[index].data[j]);
             }
 
+            initialState[i].center->curve.setup(initialState[i].center->data);
+
             delete [] pr;
 
             cout << "Picked: " << index << endl;
@@ -781,5 +794,27 @@ ClusteringSolver::Cluster * ClusteringSolver::initialization_with_curves(int clu
 }
 
 ClusteringSolver::Cluster * ClusteringSolver::update_with_curves(ClusteringSolver::Cluster * now, int clusters) {
-    // TODO
+    ClusteringSolver::Cluster * nextState = new ClusteringSolver::Cluster[clusters]();
+
+    cout << "Update ... " << endl;
+
+    for (int y = 0; y < clusters; y++) { // for each cluster
+        nextState[y].center = new DataLine();
+
+        for (unsigned d = 0; d < now->center->data.size(); d++) {
+            float sum = 0;
+            int counter = 0;
+
+            for (unsigned i = 0; i < now[y].indices.size(); i++) {
+                sum += input.lines[now[y].indices[i]].data[d];
+                counter++;
+            }
+
+            sum /= counter;
+
+            nextState[y].center->data.push_back(sum);
+        }
+    }
+
+    return nextState;
 }

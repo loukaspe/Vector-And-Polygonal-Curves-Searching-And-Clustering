@@ -4,18 +4,24 @@
 using namespace std;
 
 void DataCurve::setup(vector<float> & data) {
+    x.resize(data.size());
+    y.resize(data.size());
     for (unsigned int i = 0; i < data.size(); i++) {
-        x.push_back(i + 1);
-        y.push_back(data[i]);
+        x[i] = i+1;
+        y[i] = data[i];
     }
 }
 
 vector<float> DataCurve::concatenate() {
     vector<float> vec;
 
-    for (unsigned int i = 0; i < x.size(); i++) {
-        vec.push_back(x[i]);
-        vec.push_back(y[i]);
+    vec.resize(x.size()*2);
+
+    for (unsigned int i = 0, j = 0; i < x.size(); i++) {
+        vec[j] = x[i];
+        j++;
+        vec[j] = y[i];
+        j++;
     }
 
     return vec;

@@ -39,26 +39,23 @@ float DistanceCalculator::calculateDistanceContinuous(DataCurve &a, DataCurve&b)
 }
 
 float DistanceCalculator::calculateDistance(DataCurve &a, DataCurve&b) { // Discrete Frechet
-    unsigned curve1_complexity = a.x.size();
-    unsigned curve2_complexity = b.x.size();
+    int curve1_complexity = (int) a.x.size();
+    int curve2_complexity = (int) b.x.size();
 
-    vector<vector<float>> dists_a(curve1_complexity, vector<float>(curve2_complexity));
-    vector<vector<float>> dists(curve1_complexity, vector<float>(curve2_complexity));
+    float dists_a[curve1_complexity][curve2_complexity];
+    float dists[curve1_complexity][curve2_complexity];
 
-    for (unsigned i = 0; i < curve1_complexity; ++i) {
-        for (unsigned j = 0; j < curve2_complexity; ++j) {
-            float x1 = a.x[i];
-            float y1 = a.y[i];
+    for (int i = 0; i < curve1_complexity; ++i) {
+        for (int j = 0; j < curve2_complexity; ++j) {
+            float dx = a.x[i] - b.x[j];
+            float dy = a.y[i] - b.y[j];
 
-            float x2 = b.x[j];
-            float y2 = b.y[j];
-
-            dists[i][j] = (x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2);
+            dists[i][j] = dx * dx + dy*dy;
         }
     }
 
-    for (unsigned i = 0; i < curve1_complexity; ++i) {
-        for (unsigned j = 0; j < curve2_complexity; ++j) {
+    for (int i = 0; i < curve1_complexity; ++i) {
+        for (int j = 0; j < curve2_complexity; ++j) {
             if (i == 0 and j == 0) {
                 dists_a[i][j] = dists[i][j];
             } else if (i == 0 and j > 0) {
@@ -72,8 +69,91 @@ float DistanceCalculator::calculateDistance(DataCurve &a, DataCurve&b) { // Disc
     }
 
     return sqrt(dists_a[curve1_complexity - 1][curve2_complexity - 1]);
-    ;
 }
 
+DataCurve DistanceCalculator::meanCurve(DataCurve &a, DataCurve&b) {
+    int curve1_complexity = (int) a.x.size();
+    int curve2_complexity = (int) b.x.size();
 
+    float dists_a[curve1_complexity][curve2_complexity];
+    float dists[curve1_complexity][curve2_complexity];
+
+    for (int i = 0; i < curve1_complexity; ++i) {
+        for (int j = 0; j < curve2_complexity; ++j) {
+            float dx = a.x[i] - b.x[j];
+            float dy = a.y[i] - b.y[j];
+
+            dists[i][j] = dx * dx + dy*dy;
+        }
+    }
+
+    for (int i = 0; i < curve1_complexity; ++i) {
+        for (int j = 0; j < curve2_complexity; ++j) {
+            if (i == 0 and j == 0) {
+                dists_a[i][j] = dists[i][j];
+            } else if (i == 0 and j > 0) {
+                dists_a[i][j] = max(dists_a[i][j - 1], dists[i][j]);
+            } else if (i > 0 and j == 0) {
+                dists_a[i][j] = max(dists_a[i - 1][j], dists[i][j]);
+            } else {
+                dists_a[i][j] = max(min(min(dists_a[i - 1][j], dists_a[i - 1][j - 1]), dists_a[i][j - 1]), dists[i][j]);
+            }
+        }
+    }
+
+    DataCurve res;
+
+    int p = curve1_complexity - 1; // m1
+    int q = curve2_complexity - 1; // m2
+
+    int mx = (a.x[p] + b.x[p]) / 2;
+    int my = (a.y[p] + b.y[p]) / 2;
+
+    res.x.push_back(mx);
+    res.y.push_back(my);
+
+
+    while (p > 0 && q > 0) {
+        float dist1 = dists_a[p - 1][q];
+        float dist2 = dists_a[p][q - 1];
+        float dist3 = dists_a[p - 1][q - 1];
+
+        if (dist1 < dist2 && dist1 < dist3) {
+            --p;
+        } else if (dist2 < dist1 && dist2 < dist3) {
+            --q;
+        } else {
+            --p;
+            --q;
+        }
+
+        int mx = (a.x[p] + b.x[p]) / 2;
+        int my = (a.y[p] + b.y[p]) / 2;
+
+        res.x.push_back(mx);
+        res.y.push_back(my);
+    }
+
+    while (p > 0 && q != 0) {
+        --p;
+
+        int mx = (a.x[p] + b.x[p]) / 2;
+        int my = (a.y[p] + b.y[p]) / 2;
+
+        res.x.push_back(mx);
+        res.y.push_back(my);
+    }
+
+    while (p != 0 && q > 0) {
+        --q;
+
+        int mx = (a.x[p] + b.x[p]) / 2;
+        int my = (a.y[p] + b.y[p]) / 2;
+
+        res.x.push_back(mx);
+        res.y.push_back(my);
+    }
+
+    return res;
+}
 

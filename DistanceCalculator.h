@@ -22,6 +22,7 @@ public:
 
     float calculateDistanceContinuous(DataCurve &a, DataCurve&b); // Frechet continuous
 
+    DataCurve meanCurve(DataCurve &a, DataCurve&b);
 };
 
 #endif /* DISTANCECALCULATOR_H */

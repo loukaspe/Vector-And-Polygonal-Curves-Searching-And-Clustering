@@ -6,12 +6,12 @@
 
 using namespace std;
 
-void FileReader::load(string file) {
+void FileReader::load(string file, int maxbound) {
     set.lines.clear();
 
     ifstream file_handler;
     string line;
-    
+
     N = 0;
 
     file_handler.open(file);
@@ -21,23 +21,27 @@ void FileReader::load(string file) {
             d =0;
 
             DataLine dataline;
-            
+
             stringstream ss(line.c_str());
-            
+
             ss >> dataline.id;
 
             dataline.offset = N;
-            
+
             float token;
-            
+
             while (ss >> token) {
                 dataline.data.push_back(token);
                 d++;
             }
-            
+
             set.lines.push_back(dataline);
-            
+
             N++;
+
+            if (maxbound != -1 && (int)set.lines.size() > maxbound) {
+                set.lines.resize(maxbound);
+            }
         }
         file_handler.close();
     } else {

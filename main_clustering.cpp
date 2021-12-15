@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
 
     FileReader inputReader;
 
-    inputReader.load(parser.inputfile);
+    inputReader.load(parser.inputfile, 50);
 
     cout << "Input N: " << inputReader.N << endl;
 
