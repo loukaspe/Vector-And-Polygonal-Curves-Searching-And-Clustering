@@ -35,13 +35,13 @@ void FileReader::load(string file, int maxbound) {
                 d++;
             }
 
-            set.lines.push_back(dataline);
-
-            N++;
-
             if (maxbound != -1 && (int)dataline.data.size() > maxbound) {
                 dataline.data.resize(maxbound);
             }
+
+            set.lines.push_back(dataline);
+
+            N++;
         }
         file_handler.close();
     } else {

@@ -6,6 +6,6 @@ int DataLine::getDimension() {
 
 void DataLine::padding(unsigned dimension) {
     while (data.size() < dimension) {
-        data.push_back(0);
+        data.push_back(1000000);
     }
 }

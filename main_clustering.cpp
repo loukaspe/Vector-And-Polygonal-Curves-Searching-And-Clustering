@@ -69,7 +69,11 @@ int main(int argc, char** argv) {
         // TODO
     }
 
-    solver.silhouette(result, number_of_clusters, t);
+    if (parser.update == "Mean_Vector") {
+        solver.silhouette(result, number_of_clusters, t);
+    } else {
+        solver.silhouette_with_curves(result, number_of_clusters, t);
+    }
 
     solver.print(result, number_of_clusters, parser.complete, t);
 

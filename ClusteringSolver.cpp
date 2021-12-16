@@ -3,6 +3,8 @@
 #include <chrono>
 #include <map>
 
+#include <stack>
+
 #include "ClusteringSolver.h"
 
 ClusteringSolver::ClusteringSolver(DataSet & input, string outputfile) : input(input) {
@@ -69,8 +71,10 @@ void ClusteringSolver::print(ClusteringSolver::Cluster * initialState, int clust
         log(&ss, logger);
     }
 
-    ss << "clustering_time: " << t[0] << " ns " << endl;
-    log(&ss, logger);
+    if (t != nullptr) {
+        ss << "clustering_time: " << t[0] << " ns " << endl;
+        log(&ss, logger);
+    }
 
     ss << endl;
     log(&ss, logger);
@@ -650,6 +654,75 @@ void ClusteringSolver::silhouette(ClusteringSolver::Cluster * lastState, int clu
     }
 }
 
+
+void ClusteringSolver::silhouette_with_curves(ClusteringSolver::Cluster * lastState, int clusters, int t[]) {
+    DistanceCalculator calc(false);
+
+    for (int best_cluster = 0; best_cluster < clusters; best_cluster++) { // for each cluster
+        cout << "calculating silhouettte for cluster: " << best_cluster << " ..." << endl;
+
+        double avg_s = 0;
+        int counter = 0;
+
+        for (unsigned x = 0; x < lastState[best_cluster].indices.size(); x++) { // for each point of the best cluster
+            // find second best
+            float mindist = FLT_MAX;
+            int secondbest_cluster = 0;
+
+            for (int y = 0; y < clusters; y++) { // for each cluster other than the best
+                if (y != best_cluster) {
+                    double dist = calc.calculateDistance(input.lines[ lastState[best_cluster].indices[x]].curve, (*lastState[y].center).curve);
+                    if (dist < mindist) {
+                        mindist = dist;
+                        secondbest_cluster = y;
+                    }
+                }
+            }
+
+            // second best is now known
+
+            // find avg distance from best cluster points
+
+            double a = 0;
+
+            for (unsigned x2 = 0; x2 < lastState[best_cluster].indices.size(); x2++) { // for each point of the best cluster
+                a += calc.calculateDistance(input.lines[ lastState[best_cluster].indices[x]].curve, input.lines[lastState[best_cluster].indices[x2]].curve);
+            }
+
+            if (lastState[best_cluster].indices.size() > 0) {
+                a /= (lastState[best_cluster].indices.size());
+            }
+
+            // find avg distance from second best cluster points
+
+            double b = 0;
+
+            for (unsigned x2 = 0; x2 < lastState[secondbest_cluster].indices.size(); x2++) { // for each point of the best cluster
+                b += calc.calculateDistance(input.lines[ lastState[best_cluster].indices[x]].curve, input.lines[lastState[secondbest_cluster].indices[x2]].curve);
+            }
+
+            if (lastState[secondbest_cluster].indices.size() > 0) {
+                b /= lastState[secondbest_cluster].indices.size();
+            }
+
+            double s = 0;
+
+            if (max(b, a) != 0) {
+                s = (b - a) / max(b, a);
+            }
+
+
+            avg_s += s;
+            counter++;
+        }
+
+        if (counter > 0) {
+            avg_s /= counter;
+        }
+
+        lastState[best_cluster].silhouette = avg_s;
+    }
+}
 // ------------------------------------ Curves --------------------------------
 
 ClusteringSolver::Cluster * ClusteringSolver::lloyd_with_curves(int clusters, int t[]) { // LLoyed/Mean curve
@@ -689,11 +762,11 @@ ClusteringSolver::Cluster * ClusteringSolver::lloyd_with_curves(int clusters, in
             currentState[mincluster].indices.push_back(x);
         }
 
+        print(currentState, clusters, false, nullptr);
+
         // ----------------------------------
         //          3. Update
         // ----------------------------------
-
-        break;
         if (counter < 19) {
             ClusteringSolver::Cluster * nextState = update_with_curves(currentState, clusters);
 
@@ -798,21 +871,52 @@ ClusteringSolver::Cluster * ClusteringSolver::update_with_curves(ClusteringSolve
 
     cout << "Update ... " << endl;
 
-    for (int y = 0; y < clusters; y++) { // for each cluster
-        nextState[y].center = new DataLine();
+    DistanceCalculator calc(false);
 
-        for (unsigned d = 0; d < now->center->data.size(); d++) {
-            float sum = 0;
-            int counter = 0;
+    for (int y = 0; y < clusters; y++) { // for each cluster
+        if (now[y].indices.size() <= 1) {
+            nextState[y].center = now[y].center;
+        } else {
+            nextState[y].center = new DataLine();
+
+            stack<DataCurve* > * stackA = new stack<DataCurve* >();
 
             for (unsigned i = 0; i < now[y].indices.size(); i++) {
-                sum += input.lines[now[y].indices[i]].data[d];
-                counter++;
+                int index = now[y].indices[i];
+                stackA->push(&input.lines[index].curve);
             }
 
-            sum /= counter;
+            do {
+                stack<DataCurve* > * stackB = new stack<DataCurve* >();
 
-            nextState[y].center->data.push_back(sum);
+                while (stackA->size() > 1) {
+                    DataCurve * c1 = stackA->top();
+                    stackA->pop();
+                    DataCurve * c2 = stackA->top();
+                    stackA->pop();
+
+                    DataCurve* c3 = calc.meanCurve(*c1, *c2);
+
+                    stackB->push(c3);
+                }
+
+                while (stackA->size() > 0) {
+                    DataCurve * c1 = stackA->top();
+                    stackA->pop();
+                    stackB->push(c1);
+                }
+
+                delete stackA;
+
+                stackA = stackB;
+            } while (stackA->size() > 1);
+
+            DataCurve* datacurve = stackA->top();
+            stackA->pop();
+
+            nextState[y].center->curve = *datacurve;
+
+            delete stackA;
         }
     }
 

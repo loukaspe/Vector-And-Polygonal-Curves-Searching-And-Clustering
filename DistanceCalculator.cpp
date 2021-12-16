@@ -2,6 +2,7 @@
 #include "errors.h"
 
 #include <cmath>
+#include <list>
 
 DistanceCalculator::DistanceCalculator(bool calculate_root) : calculate_root(calculate_root) {
 
@@ -92,14 +93,20 @@ float DistanceCalculator::calculateDistance(DataCurve &a, DataCurve&b) { // Disc
     return dist;
 }
 
-DataCurve DistanceCalculator::meanCurve(DataCurve &a, DataCurve&b) {
+DataCurve * DistanceCalculator::meanCurve(DataCurve &a, DataCurve&b) {
     int curve1_complexity = (int) a.x.size();
     int curve2_complexity = (int) b.x.size();
 
-    float dists_a[curve1_complexity][curve2_complexity];
-    float dists[curve1_complexity][curve2_complexity];
+    vector<vector<float>> dists_a;
+    vector<vector<float>> dists;
+
+    dists_a.resize(curve1_complexity);
+    dists.resize(curve1_complexity);
 
     for (int i = 0; i < curve1_complexity; ++i) {
+        dists_a[i].resize(curve2_complexity);
+        dists[i].resize(curve2_complexity);
+
         for (int j = 0; j < curve2_complexity; ++j) {
             float dx = a.x[i] - b.x[j];
             float dy = a.y[i] - b.y[j];
@@ -122,16 +129,19 @@ DataCurve DistanceCalculator::meanCurve(DataCurve &a, DataCurve&b) {
         }
     }
 
-    DataCurve res;
+    DataCurve *res = new DataCurve();
 
     int p = curve1_complexity - 1; // m1
     int q = curve2_complexity - 1; // m2
 
-    int mx = (a.x[p] + b.x[p]) / 2;
+    int mx = (a.x[p] + b.x[p]) / 2; // ****
     int my = (a.y[p] + b.y[p]) / 2;
 
-    res.x.push_back(mx);
-    res.y.push_back(my);
+    list<float> x;
+    list<float> y;
+
+    x.push_front(mx);
+    y.push_front(my);
 
 
     while (p > 0 && q > 0) {
@@ -151,28 +161,36 @@ DataCurve DistanceCalculator::meanCurve(DataCurve &a, DataCurve&b) {
         int mx = (a.x[p] + b.x[p]) / 2;
         int my = (a.y[p] + b.y[p]) / 2;
 
-        res.x.push_back(mx);
-        res.y.push_back(my);
+        x.push_front(mx);
+        y.push_front(my);
     }
 
-    while (p > 0 && q != 0) {
+    while (p > 0) {
         --p;
 
         int mx = (a.x[p] + b.x[p]) / 2;
         int my = (a.y[p] + b.y[p]) / 2;
 
-        res.x.push_back(mx);
-        res.y.push_back(my);
+        x.push_front(mx);
+        y.push_front(my);
     }
 
-    while (p != 0 && q > 0) {
+    while (q > 0) {
         --q;
 
         int mx = (a.x[p] + b.x[p]) / 2;
         int my = (a.y[p] + b.y[p]) / 2;
 
-        res.x.push_back(mx);
-        res.y.push_back(my);
+        x.push_front(mx);
+        y.push_front(my);
+    }
+
+    for (auto xv : x) {
+        res->x.push_back(xv);
+    }
+
+    for (auto yv : y) {
+        res->y.push_back(yv);
     }
 
     return res;
