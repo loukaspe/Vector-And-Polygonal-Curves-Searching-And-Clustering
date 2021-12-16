@@ -134,8 +134,8 @@ DataCurve * DistanceCalculator::meanCurve(DataCurve &a, DataCurve&b) {
     int p = curve1_complexity - 1; // m1
     int q = curve2_complexity - 1; // m2
 
-    int mx = (a.x[p] + b.x[p]) / 2; // ****
-    int my = (a.y[p] + b.y[p]) / 2;
+    float mx = (a.x[p] + b.x[q]) / 2;
+    float my = (a.y[p] + b.y[q]) / 2;
 
     list<float> x;
     list<float> y;
@@ -158,8 +158,8 @@ DataCurve * DistanceCalculator::meanCurve(DataCurve &a, DataCurve&b) {
             --q;
         }
 
-        int mx = (a.x[p] + b.x[p]) / 2;
-        int my = (a.y[p] + b.y[p]) / 2;
+        float mx = (a.x[p] + b.x[q]) / 2;
+        float my = (a.y[p] + b.y[q]) / 2;
 
         x.push_front(mx);
         y.push_front(my);
@@ -168,8 +168,8 @@ DataCurve * DistanceCalculator::meanCurve(DataCurve &a, DataCurve&b) {
     while (p > 0) {
         --p;
 
-        int mx = (a.x[p] + b.x[p]) / 2;
-        int my = (a.y[p] + b.y[p]) / 2;
+        float mx = (a.x[p] + b.x[q]) / 2;
+        float my = (a.y[p] + b.y[q]) / 2;
 
         x.push_front(mx);
         y.push_front(my);
@@ -178,8 +178,8 @@ DataCurve * DistanceCalculator::meanCurve(DataCurve &a, DataCurve&b) {
     while (q > 0) {
         --q;
 
-        int mx = (a.x[p] + b.x[p]) / 2;
-        int my = (a.y[p] + b.y[p]) / 2;
+        float mx = (a.x[p] + b.x[q]) / 2;
+        float my = (a.y[p] + b.y[q]) / 2;
 
         x.push_front(mx);
         y.push_front(my);

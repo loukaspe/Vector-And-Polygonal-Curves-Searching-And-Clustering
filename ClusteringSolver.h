@@ -50,6 +50,8 @@ public:
 
     void print(ClusteringSolver::Cluster * initialState, int clusters, bool complete, int t[]);
 
+    void print_with_curves(ClusteringSolver::Cluster * initialState, int clusters, bool complete, int t[]);
+
     void silhouette(ClusteringSolver::Cluster * lastState, int clusters, int t[]);
 
     void silhouette_with_curves(ClusteringSolver::Cluster * lastState, int clusters, int t[]);

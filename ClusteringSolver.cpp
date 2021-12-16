@@ -81,6 +81,55 @@ void ClusteringSolver::print(ClusteringSolver::Cluster * initialState, int clust
     logger->close();
 }
 
+void ClusteringSolver::print_with_curves(ClusteringSolver::Cluster * initialState, int clusters, bool complete, int t[]) {
+    Logger *logger = new Logger(this->outputFile);
+    stringstream ss;
+
+    ss << "Algorithm: " << algorithm << endl;
+    log(&ss, logger);
+
+    cout << "Final State: " << endl;
+
+    for (int i = 0; i < clusters; i++) {
+        ss << "CLUSTER-: " << i << endl;
+        log(&ss, logger);
+
+        ss << "\tsize: " << initialState[i].indices.size() << endl;
+        log(&ss, logger);
+
+        ss << "\tcentroid: ";
+        log(&ss, logger);
+        for (int j = 0; j < initialState[i].center->curve.x.size(); j++) {
+            ss << initialState[i].center->curve.x[j] << "," << initialState[i].center->curve.y[j] << ", ";
+            log(&ss, logger);
+        }
+
+        ss << endl;
+        log(&ss, logger);
+
+        if (complete) {
+            ss << "\titem ids: ";
+            log(&ss, logger);
+
+            for (unsigned j = 0; j < initialState[i].indices.size(); j++) {
+                ss << input.lines[initialState[i].indices[j]].id << "\t";
+                log(&ss, logger);
+            }
+        }
+
+        ss << "\tSilhoutte: " << initialState[i].silhouette << endl;
+        log(&ss, logger);
+    }
+
+    if (t != nullptr) {
+        ss << "clustering_time: " << t[0] << " ns " << endl;
+        log(&ss, logger);
+    }
+
+    ss << endl;
+    log(&ss, logger);
+    logger->close();
+}
 ClusteringSolver::Cluster * ClusteringSolver::initialization(int clusters) {
     int n = (int) input.lines.size();
     int d = input.lines[0].getDimension();

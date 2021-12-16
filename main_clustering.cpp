@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
 
     ClusteringSolver::Cluster * result = nullptr;
 
-    int t[1] = { 0 };
+    int t[1] = {0};
 
     if (parser.assignment == "Classic" || parser.assignment == "classic") {
         if (parser.update == "Mean_Vector") {
@@ -75,7 +75,11 @@ int main(int argc, char** argv) {
         solver.silhouette_with_curves(result, number_of_clusters, t);
     }
 
-    solver.print(result, number_of_clusters, parser.complete, t);
+    if (parser.update == "Mean_Vector") {
+        solver.print(result, number_of_clusters, parser.complete, t);
+    } else {
+        solver.print_with_curves(result, number_of_clusters, parser.complete, t);
+    }
 
     logger->close();
 
