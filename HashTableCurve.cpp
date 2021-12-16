@@ -73,9 +73,9 @@ set<int> HashTableCurve::getNeighbors(DataLine & query) {
     unsigned bucket = g_output % T;
 
     for (unsigned int i=0;i<table[bucket].size();i++) {
-        if (table[bucket][i].g == g_output && table[bucket][i].grid_curve.equals(queryitem.grid_curve)) {
-            offsets.insert(table[bucket][i].addr->offset);
-        }
+//        if (table[bucket][i].g == g_output && table[bucket][i].grid_curve.equals(queryitem.grid_curve)) {
+        offsets.insert(table[bucket][i].addr->offset);
+//        }
     }
 
     return offsets;

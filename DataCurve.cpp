@@ -47,7 +47,7 @@ DataCurve DataCurve::snap(Grid & grid) {
         } else {
             int lastpos = gridcurve.x.size() - 1;
 
-            if (gridcurve.x[lastpos] != snapped_x && gridcurve.x[lastpos] != snapped_y) {
+            if (gridcurve.x[lastpos] != snapped_x || gridcurve.x[lastpos] != snapped_y) {
                 gridcurve.x.push_back(snapped_x);
                 gridcurve.y.push_back(snapped_y);
             }

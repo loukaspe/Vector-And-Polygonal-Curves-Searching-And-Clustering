@@ -38,12 +38,28 @@ float DistanceCalculator::calculateDistanceContinuous(DataCurve &a, DataCurve&b)
     return 0.0f;
 }
 
+static float ** makeMatrix(int rows, int columns) {
+    float ** array = new float*[rows];
+
+    for (int i = 0; i < rows; i++) {
+        array[i] = new float[columns];
+    }
+    return array;
+}
+
+static void destroyMatrix(float** array, int rows, int cols) {
+    for (int i = 0; i < rows; i++) {
+        delete [] array[i];
+    }
+    delete [] array;
+}
+
 float DistanceCalculator::calculateDistance(DataCurve &a, DataCurve&b) { // Discrete Frechet
     int curve1_complexity = (int) a.x.size();
     int curve2_complexity = (int) b.x.size();
 
-    float dists_a[curve1_complexity][curve2_complexity];
-    float dists[curve1_complexity][curve2_complexity];
+    float ** dists_a = makeMatrix(curve1_complexity, curve2_complexity);
+    float ** dists = makeMatrix(curve1_complexity, curve2_complexity);
 
     for (int i = 0; i < curve1_complexity; ++i) {
         for (int j = 0; j < curve2_complexity; ++j) {
@@ -68,7 +84,12 @@ float DistanceCalculator::calculateDistance(DataCurve &a, DataCurve&b) { // Disc
         }
     }
 
-    return sqrt(dists_a[curve1_complexity - 1][curve2_complexity - 1]);
+    float dist = sqrt(dists_a[curve1_complexity - 1][curve2_complexity - 1]);
+
+    destroyMatrix(dists_a, curve1_complexity, curve2_complexity);
+    destroyMatrix(dists, curve1_complexity, curve2_complexity);
+
+    return dist;
 }
 
 DataCurve DistanceCalculator::meanCurve(DataCurve &a, DataCurve&b) {

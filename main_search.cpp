@@ -21,7 +21,7 @@ int main(int argc, char** argv) {
     CommandLineParser parser;
 
     parser.parseSearch(argc, argv);
-    parser.W = 500;
+    parser.W = 200;
 
     Logger *logger = new Logger(parser.outputfile);
     stringstream ss;
@@ -54,6 +54,7 @@ int main(int argc, char** argv) {
 
     if (parser.algorithm == "LSH") {
         cout << "LSH running ... " << endl;
+
         vector<NearestNeighbourSolver::NearestNeighbor> * result_lsh = solver.lsh(parser.no_nearest_neighbors, parser.nohashtables, parser.T, parser.noFunctions, parser.W, t_algorithm);
 
         for (unsigned int i = 0; i < queryReader.set.lines.size(); i++) {
@@ -70,7 +71,7 @@ int main(int argc, char** argv) {
                     log(&ss, logger);
 
 
-                    ss << "tLSH : " << t_algorithm[i] << " ms " << endl;
+                    ss << "tLSH : " << t_algorithm[i] << " ns " << endl;
                     log(&ss, logger);
                 }
 
@@ -80,14 +81,15 @@ int main(int argc, char** argv) {
                 ss << "distanceTrue" << ":" << "\t" << sqrt(result_bf[i][j].distance) << endl;
                 log(&ss, logger);
 
-                ss << "tTrue : " << t_bf[i] << " ms " << endl;
+                ss << "tTrue : " << t_bf[i] << " ns " << endl;
                 log(&ss, logger);
 
+                if ((unsigned) j < result_lsh[i].size()) {
+                    double ratio = sqrt(result_lsh[i][j].distance) / sqrt(result_bf[i][j].distance);
 
-                double ratio = sqrt(result_lsh[i][j].distance) / sqrt(result_bf[i][j].distance);
-
-                if (ratio > max_ratio) {
-                    max_ratio = ratio;
+                    if (ratio > max_ratio) {
+                        max_ratio = ratio;
+                    }
                 }
             }
         }
@@ -114,7 +116,7 @@ int main(int argc, char** argv) {
                     ss << "distanceHypercube" << ":" << "\t" << sqrt(result_cube[i][j].distance) << endl;
                     log(&ss, logger);
 
-                    ss << "tHypercube : " << t_algorithm[i] << " ms " << endl;
+                    ss << "tHypercube : " << t_algorithm[i] << " ns " << endl;
                     log(&ss, logger);
                 }
 
@@ -124,13 +126,15 @@ int main(int argc, char** argv) {
                 ss << "distanceTrue" << ":" << "\t" << sqrt(result_bf[i][j].distance) << endl;
                 log(&ss, logger);
 
-                ss << "tTrue : " << t_bf[i] << " ms " << endl;
+                ss << "tTrue : " << t_bf[i] << " ns " << endl;
                 log(&ss, logger);
 
-                double ratio = sqrt(result_cube[i][j].distance) / sqrt(result_bf[i][j].distance);
+                if ((unsigned) j < result_cube[i].size()) {
+                    double ratio = sqrt(result_cube[i][j].distance) / sqrt(result_bf[i][j].distance);
 
-                if (ratio > max_ratio) {
-                    max_ratio = ratio;
+                    if (ratio > max_ratio) {
+                        max_ratio = ratio;
+                    }
                 }
             }
         }
@@ -154,7 +158,7 @@ int main(int argc, char** argv) {
                     log(&ss, logger);
 
 
-                    ss << "tFrechet : " << t_algorithm[i] << " ms " << endl;
+                    ss << "tFrechet : " << t_algorithm[i] << " ns " << endl;
                     log(&ss, logger);
                 }
 
@@ -164,14 +168,16 @@ int main(int argc, char** argv) {
                 ss << "distanceTrue" << ":" << "\t" << sqrt(result_bf[i][j].distance) << endl;
                 log(&ss, logger);
 
-                ss << "tTrue : " << t_bf[i] << " ms " << endl;
+                ss << "tTrue : " << t_bf[i] << " ns " << endl;
                 log(&ss, logger);
 
 
-                double ratio = sqrt(result_frechet[i][j].distance) / sqrt(result_bf[i][j].distance);
+                if ((unsigned) j < result_frechet[i].size()) {
+                    double ratio = sqrt(result_frechet[i][j].distance) / sqrt(result_bf[i][j].distance);
 
-                if (ratio > max_ratio) {
-                    max_ratio = ratio;
+                    if (ratio > max_ratio) {
+                        max_ratio = ratio;
+                    }
                 }
             }
         }
@@ -189,10 +195,10 @@ int main(int argc, char** argv) {
     avg_t_bf /= queryReader.set.lines.size();
     avg_t_algorithm /= queryReader.set.lines.size();
 
-    ss << "Average time for BF: " << avg_t_bf << endl;
+    ss << "Average time for BF: " << avg_t_bf << " ns " << endl;
     log(&ss, logger);
 
-    ss << "Average time for algorithm: " << avg_t_algorithm << endl;
+    ss << "Average time for algorithm: " << avg_t_algorithm << " ns " << endl;
     log(&ss, logger);
 
     ss << "Max ratio algorithm/BF: " << max_ratio << endl;

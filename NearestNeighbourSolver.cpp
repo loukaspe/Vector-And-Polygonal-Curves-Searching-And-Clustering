@@ -48,7 +48,7 @@ vector<NearestNeighbourSolver::NearestNeighbor> * NearestNeighbourSolver::bruteF
 
         auto end = chrono::steady_clock::now();
 
-        t[i] = chrono::duration_cast<chrono::milliseconds>(end - start).count();
+        t[i] = chrono::duration_cast<chrono::nanoseconds>(end - start).count();
     }
 
     return data;
@@ -105,7 +105,7 @@ vector<NearestNeighbourSolver::NearestNeighbor> * NearestNeighbourSolver::lsh(un
 
         auto end = chrono::steady_clock::now();
 
-        t[i] = chrono::duration_cast<chrono::milliseconds>(end - start).count();
+        t[i] = chrono::duration_cast<chrono::nanoseconds>(end - start).count();
     }
 
     return data;
@@ -155,7 +155,7 @@ vector<NearestNeighbourSolver::NearestNeighbor> * NearestNeighbourSolver::cube(u
 
         auto end = chrono::steady_clock::now();
 
-        t[i] = chrono::duration_cast<chrono::milliseconds>(end - start).count();
+        t[i] = chrono::duration_cast<chrono::nanoseconds>(end - start).count();
     }
 
 
@@ -278,11 +278,11 @@ vector<NearestNeighbourSolver::NearestNeighbor> * NearestNeighbourSolver::freche
     }
 
     for (unsigned int i = 0; i < input.lines.size(); i++) {
-        input.lines[i].curve.setup(input.lines[i].data);
+        input.lines[i].curve.setup(input.lines[i].data); // vector to curve
     }
 
     for (unsigned int i = 0; i < query.lines.size(); i++) {
-        query.lines[i].curve.setup(query.lines[i].data);
+        query.lines[i].curve.setup(query.lines[i].data); // vector to curve
     }
 
     for (unsigned int i = 0; i < input.lines.size(); i++) {
@@ -306,7 +306,7 @@ vector<NearestNeighbourSolver::NearestNeighbor> * NearestNeighbourSolver::freche
         }
 
         for (auto offset : hits) {
-            double dist = calc.calculateDistance(query.lines[i], input.lines[offset]);
+            double dist = calc.calculateDistance(query.lines[i].curve, input.lines[offset].curve);
 
             NearestNeighbor n(offset, dist);
             data[i].push_back(n);
@@ -321,13 +321,13 @@ vector<NearestNeighbourSolver::NearestNeighbor> * NearestNeighbourSolver::freche
 
         auto end = chrono::steady_clock::now();
 
-        t[i] = chrono::duration_cast<chrono::milliseconds>(end - start).count();
+        t[i] = chrono::duration_cast<chrono::nanoseconds>(end - start).count();
     }
 
     return data;
 }
 
-vector<NearestNeighbourSolver::NearestNeighbor> * NearestNeighbourSolver::frechet(HashTable * hashtables, DataSet & query, int nohashtables, int T, int noFunctions, int W, string metric, double delta) {
-
-}
+//vector<NearestNeighbourSolver::NearestNeighbor> * NearestNeighbourSolver::frechet(HashTable * hashtables, DataSet & query, int nohashtables, int T, int noFunctions, int W, string metric, double delta) {
+//
+//}
 

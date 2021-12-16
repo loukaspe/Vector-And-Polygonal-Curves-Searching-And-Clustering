@@ -65,12 +65,12 @@ void ClusteringSolver::print(ClusteringSolver::Cluster * initialState, int clust
             }
         }
 
-        ss << "\tclustering_time: " << t[i] << endl;
-        log(&ss, logger);
-
         ss << "\tSilhoutte: " << initialState[i].silhouette << endl;
         log(&ss, logger);
     }
+
+    ss << "clustering_time: " << t[0] << " ns " << endl;
+    log(&ss, logger);
 
     ss << endl;
     log(&ss, logger);
@@ -224,7 +224,7 @@ ClusteringSolver::Cluster * ClusteringSolver::lloyd(int clusters, int t[]) {
 
     auto end = chrono::steady_clock::now();
 
-    t[0] = chrono::duration_cast<chrono::milliseconds>(end - start).count();
+    t[0] = chrono::duration_cast<chrono::nanoseconds>(end - start).count();
 
     return currentState;
 }
@@ -394,7 +394,7 @@ ClusteringSolver::Cluster * ClusteringSolver::lsh(int clusters, int t[], int num
 
     auto end = chrono::steady_clock::now();
 
-    t[0] = chrono::duration_cast<chrono::milliseconds>(end - start).count();
+    t[0] = chrono::duration_cast<chrono::nanoseconds>(end - start).count();
 
     delete [] hashtables;
 
@@ -567,7 +567,7 @@ ClusteringSolver::Cluster * ClusteringSolver::cube(int clusters, int t[], int nu
 
     auto end = chrono::steady_clock::now();
 
-    t[0] = chrono::duration_cast<chrono::milliseconds>(end - start).count();
+    t[0] = chrono::duration_cast<chrono::nanoseconds>(end - start).count();
 
 
     delete [] hashtables;
@@ -705,7 +705,7 @@ ClusteringSolver::Cluster * ClusteringSolver::lloyd_with_curves(int clusters, in
 
     auto end = chrono::steady_clock::now();
 
-    t[0] = chrono::duration_cast<chrono::milliseconds>(end - start).count();
+    t[0] = chrono::duration_cast<chrono::nanoseconds>(end - start).count();
 
     return currentState;
 }

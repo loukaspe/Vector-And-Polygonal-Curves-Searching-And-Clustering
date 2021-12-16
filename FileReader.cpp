@@ -39,8 +39,8 @@ void FileReader::load(string file, int maxbound) {
 
             N++;
 
-            if (maxbound != -1 && (int)set.lines.size() > maxbound) {
-                set.lines.resize(maxbound);
+            if (maxbound != -1 && (int)dataline.data.size() > maxbound) {
+                dataline.data.resize(maxbound);
             }
         }
         file_handler.close();
