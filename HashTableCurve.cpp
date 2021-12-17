@@ -34,14 +34,14 @@ void HashTableCurve::setup(int t, int k, int W, int d, double delta) {
     grid.setup(delta, 2);
 }
 
-void HashTableCurve::add(DataLine * line) {
+void HashTableCurve::add(DataLine * line,int padding) {
     int hi[K] = { 0 };
 
     HashItem item;
     item.addr = line;
     item.grid_curve = line->curve.snap(grid);
     item.key.data = item.grid_curve.concatenate();
-    item.key.padding(line->getDimension()*2);
+    item.key.padding(padding);
 
     for (int i=0;i<K;i++) {
         hi[i] = h[i].value(item.key);
@@ -55,13 +55,13 @@ void HashTableCurve::add(DataLine * line) {
     table[bucket].push_back(item);
 }
 
-set<int> HashTableCurve::getNeighbors(DataLine & query) {
+set<int> HashTableCurve::getNeighbors(DataLine & query,int padding) {
     set<int> offsets;
 
     HashItem queryitem;
     queryitem.grid_curve = query.curve.snap(grid);
     queryitem.key.data = queryitem.grid_curve.concatenate();
-    queryitem.key.padding(query.getDimension()*2);
+    queryitem.key.padding(padding);
 
     int hi[K] = { 0 };
 

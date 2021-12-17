@@ -35,9 +35,9 @@ public:
 
     void setup(int t, int k, int W, int d, double delta);
 
-    void add(DataLine * line);
+    void add(DataLine * line,int padding);
 
-    set<int> getNeighbors(DataLine & query);
+    set<int> getNeighbors(DataLine & query,int padding);
 private:
 
 };

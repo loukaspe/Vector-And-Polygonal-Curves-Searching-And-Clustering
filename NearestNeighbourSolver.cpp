@@ -260,7 +260,7 @@ vector<NearestNeighbourSolver::NearestNeighbor> * NearestNeighbourSolver::cube(H
     return data;
 }
 
-// Frechet
+// Search Frechet - NN
 
 vector<NearestNeighbourSolver::NearestNeighbor> * NearestNeighbourSolver::frechet(unsigned N, int nohashtables, int T, int noFunctions, int W, int t[], string metric, double delta) {
     unsigned q = query.lines.size();
@@ -287,7 +287,7 @@ vector<NearestNeighbourSolver::NearestNeighbor> * NearestNeighbourSolver::freche
 
     for (unsigned int i = 0; i < input.lines.size(); i++) {
         for (int l = 0; l < nohashtables; l++) {
-            hashtables[l].add(&input.lines[i]);
+            hashtables[l].add(&input.lines[i], 2*d);
         }
     }
 
@@ -298,7 +298,7 @@ vector<NearestNeighbourSolver::NearestNeighbor> * NearestNeighbourSolver::freche
         auto start = chrono::steady_clock::now();
 
         for (int l = 0; l < nohashtables; l++) {
-            set<int> offsets = hashtables[l].getNeighbors(query.lines[i]);
+            set<int> offsets = hashtables[l].getNeighbors(query.lines[i], 2*d);
 
             for (auto x : offsets) {
                 hits.insert(x);
@@ -327,7 +327,36 @@ vector<NearestNeighbourSolver::NearestNeighbor> * NearestNeighbourSolver::freche
     return data;
 }
 
-//vector<NearestNeighbourSolver::NearestNeighbor> * NearestNeighbourSolver::frechet(HashTable * hashtables, DataSet & query, int nohashtables, int T, int noFunctions, int W, string metric, double delta) {
-//
-//}
+vector<NearestNeighbourSolver::NearestNeighbor> * NearestNeighbourSolver::frechet(HashTableCurve * hashtables, DataSet & query, int nohashtables, int T, int noFunctions, int W, double delta) {
+    unsigned q = query.lines.size();
+    unsigned d = input.lines[0].data.size();
+
+    vector<NearestNeighbor> * data = new vector<NearestNeighbor>[q];
+
+    DistanceCalculator calc(false);
+
+    for (unsigned int i = 0; i < query.lines.size(); i++) {
+        set<int> hits;
+
+        for (int l = 0; l < nohashtables; l++) {
+            set<int> offsets = hashtables[l].getNeighbors(query.lines[i], 2*d);
+
+            for (auto x : offsets) {
+                hits.insert(x);
+            }
+        }
+
+        for (auto offset : hits) {
+            double dist = calc.calculateDistance(query.lines[i].curve, input.lines[offset].curve);
+
+            NearestNeighbor n(offset, dist);
+            data[i].push_back(n);
+
+        }
+
+        sort(data[i].begin(), data[i].end(), compareNearestNeighbor);
+    }
+
+    return data;
+}
 

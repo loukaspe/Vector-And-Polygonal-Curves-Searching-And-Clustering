@@ -45,7 +45,7 @@ public:
 
 
     ClusteringSolver::Cluster * lloyd_with_curves(int clusters, int t[]);  // LLoyed/Mean curve
-    ClusteringSolver::Cluster * lsh_frechet_with_curves(int clusters, int t[]); // LSH Frechet/mean curve;
+    ClusteringSolver::Cluster * lsh_frechet_with_curves(int clusters, int t[], int number_of_vector_hash_tables, int number_of_vector_hash_functions, int W, double delta); // LSH Frechet/mean curve;
 
 
     void print(ClusteringSolver::Cluster * initialState, int clusters, bool complete, int t[]);

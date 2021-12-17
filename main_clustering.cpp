@@ -22,6 +22,8 @@ int main(int argc, char** argv) {
 
     parser.parseClustering(argc, argv);
 
+    parser.delta = 1;
+
     ParametersFileReader *parametersFileReader = new ParametersFileReader();
     parametersFileReader->loadParameters(parser.configurationfile);
 
@@ -66,7 +68,7 @@ int main(int argc, char** argv) {
     }
 
     if (parser.assignment == "LSH_Frechet") {
-        // TODO
+        result = solver.lsh_frechet_with_curves(number_of_clusters, t, number_of_vector_hash_tables, number_of_vector_hash_functions, W, parser.delta);
     }
 
     if (parser.update == "Mean_Vector") {
