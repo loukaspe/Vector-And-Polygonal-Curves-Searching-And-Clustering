@@ -95,6 +95,8 @@ void CommandLineParser::parseClustering(int argc, char *argv[]) {
     inputfile = "";
     configurationfile = "";
     outputfile = "";
+    silhouette = false;
+    complete = false;
 
     // parse input file, configuration file, output file
     parseBasicClusteringParams(argc, argv);
@@ -110,11 +112,11 @@ void CommandLineParser::parseClustering(int argc, char *argv[]) {
         }
 
         if (argv[i] == std::string("-complete")) {
-            complete = argv[i + 1];
+            complete = true;
         }
 
         if (argv[i] == std::string("-silhouette")) {
-            silhouette = argv[i + 1];
+            silhouette = true;
         }
     }
 

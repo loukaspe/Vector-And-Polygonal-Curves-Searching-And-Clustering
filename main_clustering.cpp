@@ -71,10 +71,12 @@ int main(int argc, char** argv) {
         result = solver.lsh_frechet_with_curves(number_of_clusters, t, number_of_vector_hash_tables, number_of_vector_hash_functions, W, parser.delta);
     }
 
-    if (parser.update == "Mean_Vector") {
-        solver.silhouette(result, number_of_clusters, t);
-    } else {
-        solver.silhouette_with_curves(result, number_of_clusters, t);
+    if (parser.silhouette) {
+        if (parser.update == "Mean_Vector") {
+            solver.silhouette(result, number_of_clusters, t);
+        } else {
+            solver.silhouette_with_curves(result, number_of_clusters, t);
+        }
     }
 
     if (parser.update == "Mean_Vector") {

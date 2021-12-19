@@ -59,20 +59,21 @@ int main(int argc, char** argv) {
 
         for (unsigned int i = 0; i < queryReader.set.lines.size(); i++) {
             cout << "_____________________________________________________ \n";
-            ss << "Query #" << i << ": " << endl;
+            ss << "\nQuery " << i << ": " << endl << "Algorithm: " << parser.algorithm << endl;
             log(&ss, logger);
 
             for (int j = 0; j < parser.no_nearest_neighbors; j++) {
                 if ((unsigned) j < result_lsh[i].size()) {
-                    ss << "LSH  Nearest neighbor-" << j << ":" << "\t" << result_lsh[i][j].index << endl;
+                    ss << "Approximate  Nearest neighbor-" << j << ":" << "\t" << result_lsh[i][j].index << endl;
                     log(&ss, logger);
 
                     ss << "distanceLSH" << ":" << "\t" << sqrt(result_lsh[i][j].distance) << endl;
                     log(&ss, logger);
 
-
-                    ss << "tLSH : " << t_algorithm[i] << " ns " << endl;
+                    ss << "distanceApproximate" << ":" << "\t" << sqrt(result_lsh[i][j].distance) << endl;
                     log(&ss, logger);
+
+                    cout << "tLSH : " << t_algorithm[i] << " ns " << endl;
                 }
 
                 ss << "True Nearest neighbor-" << j << ":" << "\t" << result_bf[i][j].index << endl;
@@ -81,8 +82,7 @@ int main(int argc, char** argv) {
                 ss << "distanceTrue" << ":" << "\t" << sqrt(result_bf[i][j].distance) << endl;
                 log(&ss, logger);
 
-                ss << "tTrue : " << t_bf[i] << " ns " << endl;
-                log(&ss, logger);
+                cout << "tTrue : " << t_bf[i] << " ns " << endl;
 
                 if ((unsigned) j < result_lsh[i].size()) {
                     double ratio = sqrt(result_lsh[i][j].distance) / sqrt(result_bf[i][j].distance);
@@ -100,24 +100,20 @@ int main(int argc, char** argv) {
 
         vector<NearestNeighbourSolver::NearestNeighbor> * result_cube = solver.cube(parser.no_nearest_neighbors, parser.max_points_to_control, parser.probes, parser.noFunctions, parser.W, t_algorithm);
 
-        Logger *logger = new Logger(parser.outputfile);
-        stringstream ss;
-
         for (unsigned int i = 0; i < queryReader.set.lines.size(); i++) {
             cout << "_____________________________________________________ \n";
-            ss << "Query #" << i << ": " << endl;
+            ss << "\nQuery " << i << ": " << endl << "Algorithm: " << parser.algorithm << endl;
             log(&ss, logger);
 
             for (int j = 0; j < parser.no_nearest_neighbors; j++) {
                 if ((unsigned) j < result_cube[i].size()) {
-                    ss << "Cube Nearest neighbor-" << j << ":" << "\t" << result_cube[i][j].index << endl;
+                    ss << "Approximate Nearest neighbor-" << j << ":" << "\t" << result_cube[i][j].index << endl;
                     log(&ss, logger);
 
-                    ss << "distanceHypercube" << ":" << "\t" << sqrt(result_cube[i][j].distance) << endl;
+                    ss << "distanceApproximate" << ":" << "\t" << sqrt(result_cube[i][j].distance) << endl;
                     log(&ss, logger);
 
-                    ss << "tHypercube : " << t_algorithm[i] << " ns " << endl;
-                    log(&ss, logger);
+                    cout << "tHypercube : " << t_algorithm[i] << " ns " << endl;
                 }
 
                 ss << "True Nearest neighbor-" << j << ":" << "\t" << result_bf[i][j].index << endl;
@@ -126,8 +122,7 @@ int main(int argc, char** argv) {
                 ss << "distanceTrue" << ":" << "\t" << sqrt(result_bf[i][j].distance) << endl;
                 log(&ss, logger);
 
-                ss << "tTrue : " << t_bf[i] << " ns " << endl;
-                log(&ss, logger);
+                cout << "tTrue : " << t_bf[i] << " ns " << endl;
 
                 if ((unsigned) j < result_cube[i].size()) {
                     double ratio = sqrt(result_cube[i][j].distance) / sqrt(result_bf[i][j].distance);
@@ -146,20 +141,18 @@ int main(int argc, char** argv) {
 
         for (unsigned int i = 0; i < queryReader.set.lines.size(); i++) {
             cout << "_____________________________________________________ \n";
-            ss << "Query #" << i << ": " << endl;
+            ss << "\nQuery " << i << ": " << endl << "Algorithm: " << parser.algorithm << endl;
             log(&ss, logger);
 
             for (int j = 0; j < parser.no_nearest_neighbors; j++) {
                 if ((unsigned) j < result_frechet[i].size()) {
-                    ss << "Frechet  Nearest neighbor-" << j << ":" << "\t" << result_frechet[i][j].index << endl;
+                    ss << "Approximate  Nearest neighbor-" << j << ":" << "\t" << result_frechet[i][j].index << endl;
                     log(&ss, logger);
 
-                    ss << "distanceLSH" << ":" << "\t" << sqrt(result_frechet[i][j].distance) << endl;
+                    ss << "distanceApproximate" << ":" << "\t" << sqrt(result_frechet[i][j].distance) << endl;
                     log(&ss, logger);
 
-
-                    ss << "tFrechet : " << t_algorithm[i] << " ns " << endl;
-                    log(&ss, logger);
+                    cout << "tFrechet : " << t_algorithm[i] << " ns " << endl;
                 }
 
                 ss << "True Nearest neighbor-" << j << ":" << "\t" << result_bf[i][j].index << endl;
@@ -168,9 +161,7 @@ int main(int argc, char** argv) {
                 ss << "distanceTrue" << ":" << "\t" << sqrt(result_bf[i][j].distance) << endl;
                 log(&ss, logger);
 
-                ss << "tTrue : " << t_bf[i] << " ns " << endl;
-                log(&ss, logger);
-
+                cout << "tTrue : " << t_bf[i] << " ns " << endl;
 
                 if ((unsigned) j < result_frechet[i].size()) {
                     double ratio = sqrt(result_frechet[i][j].distance) / sqrt(result_bf[i][j].distance);
@@ -195,13 +186,13 @@ int main(int argc, char** argv) {
     avg_t_bf /= queryReader.set.lines.size();
     avg_t_algorithm /= queryReader.set.lines.size();
 
-    ss << "Average time for BF: " << avg_t_bf << " ns " << endl;
+    ss << "\ntApproximateAverage: " << avg_t_algorithm << " ns " << endl;
     log(&ss, logger);
 
-    ss << "Average time for algorithm: " << avg_t_algorithm << " ns " << endl;
+    ss << "tTrueAverage: " << avg_t_bf << " ns " << endl;
     log(&ss, logger);
 
-    ss << "Max ratio algorithm/BF: " << max_ratio << endl;
+    ss << "MAF: " << max_ratio << endl;
     log(&ss, logger);
 
     logger->close();

@@ -7,7 +7,7 @@
 
 #include "ClusteringSolver.h"
 
-ClusteringSolver::ClusteringSolver(DataSet & input, string outputfile) : input(input) {
+ClusteringSolver::ClusteringSolver(DataSet & input, string outputfile) : input(input), outputFile(outputfile) {
 
 }
 
