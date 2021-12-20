@@ -23,20 +23,18 @@ public:
 
     vector<vector<HashItem>> table;
     
-    HashFunctionG * g;
-    HashFunctionH ** h;
+    HashFunctionH * h;
     HashFunctionF * f;
     int k;
     int T;
-    int no_of_g;
             
-    void setup(int t, int no_of_g, int k, int W, int d);
+    void setup(int k, int W, int d);
     
     void add(DataLine * line);
     
-    set<int> getNeighbors(DataLine & query, int probes);
+    set<int> getNeighbors(DataLine & query, int max_points_to_control, int probes);
 private:
-    vector<int> getRelativeBuckets(int x, int probes, int bits);
+    vector<int> getRelativeBuckets(int x, int max_points_to_control, int probes, int bits);
 
     int calculateHammingDistance(int n1, int n2);
 

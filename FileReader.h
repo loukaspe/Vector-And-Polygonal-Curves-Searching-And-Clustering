@@ -13,7 +13,7 @@ public:
     int N;
     int d;
 
-    void load(string file);
+    void load(string file, int maxbound = -1);
 };
 
 #endif /* FILEREADER_H */

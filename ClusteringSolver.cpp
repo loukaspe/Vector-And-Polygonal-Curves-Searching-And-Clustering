@@ -3,6 +3,8 @@
 #include <chrono>
 #include <map>
 
+#include <stack>
+
 #include "ClusteringSolver.h"
 
 ClusteringSolver::ClusteringSolver(DataSet & input, string outputfile) : input(input), outputFile(outputfile) {
@@ -65,10 +67,62 @@ void ClusteringSolver::print(ClusteringSolver::Cluster * initialState, int clust
             }
         }
 
-        ss << "\tclustering_time: " << t[i]  << endl;
+        ss << "\tSilhoutte: " << initialState[i].silhouette << endl;
+        log(&ss, logger);
+    }
+
+    if (t != nullptr) {
+        ss << "clustering_time: " << t[0] << " ns " << endl;
+        log(&ss, logger);
+    }
+
+    ss << endl;
+    log(&ss, logger);
+    logger->close();
+}
+
+void ClusteringSolver::print_with_curves(ClusteringSolver::Cluster * initialState, int clusters, bool complete, int t[]) {
+    Logger *logger = new Logger(this->outputFile);
+    stringstream ss;
+
+    ss << "Algorithm: " << algorithm << endl;
+    log(&ss, logger);
+
+    cout << "Final State: " << endl;
+
+    for (int i = 0; i < clusters; i++) {
+        ss << "CLUSTER-: " << i << endl;
         log(&ss, logger);
 
+        ss << "\tsize: " << initialState[i].indices.size() << endl;
+        log(&ss, logger);
+
+        ss << "\tcentroid: ";
+        log(&ss, logger);
+        for (unsigned j = 0; j < initialState[i].center->curve.x.size(); j++) {
+            ss << initialState[i].center->curve.x[j] << "," << initialState[i].center->curve.y[j] << ", ";
+            log(&ss, logger);
+        }
+
+        ss << endl;
+        log(&ss, logger);
+
+        if (complete) {
+            ss << "\titem ids: ";
+            log(&ss, logger);
+
+            for (unsigned j = 0; j < initialState[i].indices.size(); j++) {
+                ss << input.lines[initialState[i].indices[j]].id << "\t";
+                log(&ss, logger);
+            }
+        }
+
         ss << "\tSilhoutte: " << initialState[i].silhouette << endl;
+        log(&ss, logger);
+    }
+
+    if (t != nullptr) {
+        ss << "clustering_time: " << t[0] << " ns " << endl;
         log(&ss, logger);
     }
 
@@ -224,7 +278,7 @@ ClusteringSolver::Cluster * ClusteringSolver::lloyd(int clusters, int t[]) {
 
     auto end = chrono::steady_clock::now();
 
-    t[0] = chrono::duration_cast<chrono::milliseconds>(end - start).count();
+    t[0] = chrono::duration_cast<chrono::nanoseconds>(end - start).count();
 
     return currentState;
 }
@@ -315,14 +369,14 @@ ClusteringSolver::Cluster * ClusteringSolver::lsh(int clusters, int t[], int num
 
             vector<NearestNeighbourSolver::NearestNeighbor> * result_lsh = solver.lsh(hashtables, query, number_of_vector_hash_tables, T, number_of_vector_hash_functions, W);
 
-//            cout << "result lsh " << R << endl;
+            //            cout << "result lsh " << R << endl;
 
             for (int cluster_id = 0; cluster_id < clusters; cluster_id++) {
                 unsigned j = 0;
 
                 cout << result_lsh[cluster_id].size() << endl;
                 while (j < result_lsh[cluster_id].size() && sqrt(result_lsh[cluster_id][j].distance) <= R) {
-//                    cout << "loop j = " << j << endl;
+                    //                    cout << "loop j = " << j << endl;
                     int index = result_lsh[cluster_id][j].index;
 
                     if (item_cluster[index] == -1) { // first time discovered
@@ -330,14 +384,14 @@ ClusteringSolver::Cluster * ClusteringSolver::lsh(int clusters, int t[], int num
                         item_distance[index] = result_lsh[cluster_id][j].distance;
                         item_loop_found[index] = R;
                         change = true;
-//                        cout << "change " << endl;
+                        //                        cout << "change " << endl;
                     } else if (item_cluster[index] == cluster_id) { // already discovered by me
                         // do nothing
-//                        cout << "nothing to me" << endl;
+                        //                        cout << "nothing to me" << endl;
                     } else { // discovered by someone else
                         if (item_loop_found[index] < R) {
                             // do nothing
-//                            cout << "nothing R" << endl;
+                            //                            cout << "nothing R" << endl;
                         } else if (item_loop_found[index] == R) {
                             double dist = calc.calculateDistance(input.lines[index], *(currentState[cluster_id].center));
                             if (dist < item_loop_found[index]) {
@@ -345,7 +399,7 @@ ClusteringSolver::Cluster * ClusteringSolver::lsh(int clusters, int t[], int num
                                 item_distance[index] = result_lsh[cluster_id][j].distance;
                                 item_loop_found[index] = R;
                                 change = true;
-//                                cout << "change " << endl;
+                                //                                cout << "change " << endl;
                             }
                         }
                     }
@@ -394,14 +448,14 @@ ClusteringSolver::Cluster * ClusteringSolver::lsh(int clusters, int t[], int num
 
     auto end = chrono::steady_clock::now();
 
-    t[0] = chrono::duration_cast<chrono::milliseconds>(end - start).count();
+    t[0] = chrono::duration_cast<chrono::nanoseconds>(end - start).count();
 
     delete [] hashtables;
 
     return currentState;
 }
 
-ClusteringSolver::Cluster * ClusteringSolver::cube(int clusters, int t[], int number_of_vector_hash_tables, int number_of_vector_hash_functions, int W, int max_number_M_hypercube, int number_of_hypercube_dimensions, int number_of_probes) {
+ClusteringSolver::Cluster * ClusteringSolver::cube(int clusters, int t[], int number_of_vector_hash_functions, int W, int max_number_M_hypercube, int number_of_hypercube_dimensions, int number_of_probes) {
     DistanceCalculator calc(false);
 
     algorithm = "HYPERCUBE";
@@ -413,18 +467,15 @@ ClusteringSolver::Cluster * ClusteringSolver::cube(int clusters, int t[], int nu
 
     printInitialState(currentState, clusters);
 
-    int n = (int) input.lines.size();
-    int no_of_g = (int)log2(input.lines.size());
+//    int n = (int) input.lines.size();
 
     // ---------------------------------------
     //          1b. Initialization - Hypercube
     // ---------------------------------------
 
-    int T = n / 8;
-
     NearestNeighbourSolver solver(input);
 
-    HashTable * hashtables = solver.prepareHyperCube(no_of_g, T, number_of_vector_hash_functions, W);
+    HashTableCube * hashtables = solver.prepareHyperCube(number_of_vector_hash_functions, W);
 
     auto start = chrono::steady_clock::now();
 
@@ -486,16 +537,16 @@ ClusteringSolver::Cluster * ClusteringSolver::cube(int clusters, int t[], int nu
 
             cout << "Scanning in R = " << R << endl;
 
-            vector<NearestNeighbourSolver::NearestNeighbor> * result_cube = solver.cube(hashtables, query, no_of_g, max_number_M_hypercube, number_of_probes, T, number_of_vector_hash_functions, W);
+            vector<NearestNeighbourSolver::NearestNeighbor> * result_cube = solver.cube(hashtables, query, max_number_M_hypercube, number_of_probes, number_of_vector_hash_functions, W);
 
             cout << "result cube " << R << endl;
 
             for (int cluster_id = 0; cluster_id < clusters; cluster_id++) {
                 unsigned j = 0;
 
-                cout << result_cube[cluster_id].size() << endl;
+                //                cout << result_cube[cluster_id].size() << endl;
                 while (j < result_cube[cluster_id].size() && sqrt(result_cube[cluster_id][j].distance) <= R) {
-//                    cout << "loop j = " << j << endl;
+                    //                    cout << "loop j = " << j << endl;
                     int index = result_cube[cluster_id][j].index;
 
                     if (item_cluster[index] == -1) { // first time discovered
@@ -503,14 +554,14 @@ ClusteringSolver::Cluster * ClusteringSolver::cube(int clusters, int t[], int nu
                         item_distance[index] = result_cube[cluster_id][j].distance;
                         item_loop_found[index] = R;
                         change = true;
-//                        cout << "change " << endl;
+                        //                        cout << "change " << endl;
                     } else if (item_cluster[index] == cluster_id) { // already discovered by me
                         // do nothing
-//                        cout << "nothing to me" << endl;
+                        //                        cout << "nothing to me" << endl;
                     } else { // discovered by someone else
                         if (item_loop_found[index] < R) {
                             // do nothing
-//                            cout << "nothing R" << endl;
+                            //                            cout << "nothing R" << endl;
                         } else if (item_loop_found[index] == R) {
                             double dist = calc.calculateDistance(input.lines[index], *(currentState[cluster_id].center));
                             if (dist < item_loop_found[index]) {
@@ -518,7 +569,7 @@ ClusteringSolver::Cluster * ClusteringSolver::cube(int clusters, int t[], int nu
                                 item_distance[index] = result_cube[cluster_id][j].distance;
                                 item_loop_found[index] = R;
                                 change = true;
-//                                cout << "change " << endl;
+                                //                                cout << "change " << endl;
                             }
                         }
                     }
@@ -567,7 +618,7 @@ ClusteringSolver::Cluster * ClusteringSolver::cube(int clusters, int t[], int nu
 
     auto end = chrono::steady_clock::now();
 
-    t[0] = chrono::duration_cast<chrono::milliseconds>(end - start).count();
+    t[0] = chrono::duration_cast<chrono::nanoseconds>(end - start).count();
 
 
     delete [] hashtables;
@@ -616,7 +667,7 @@ void ClusteringSolver::silhouette(ClusteringSolver::Cluster * lastState, int clu
             }
 
             if (lastState[best_cluster].indices.size() > 0) {
-                a /= (lastState[best_cluster].indices.size() - 1);
+                a /= (lastState[best_cluster].indices.size());
             }
 
             // find avg distance from second best cluster points
@@ -648,4 +699,456 @@ void ClusteringSolver::silhouette(ClusteringSolver::Cluster * lastState, int clu
 
         lastState[best_cluster].silhouette = avg_s;
     }
+}
+
+
+void ClusteringSolver::silhouette_with_curves(ClusteringSolver::Cluster * lastState, int clusters, int t[]) {
+    DistanceCalculator calc(false);
+
+    for (int best_cluster = 0; best_cluster < clusters; best_cluster++) { // for each cluster
+        cout << "calculating silhouettte for cluster: " << best_cluster << " ..." << endl;
+
+        double avg_s = 0;
+        int counter = 0;
+
+        for (unsigned x = 0; x < lastState[best_cluster].indices.size(); x++) { // for each point of the best cluster
+            // find second best
+            float mindist = FLT_MAX;
+            int secondbest_cluster = 0;
+
+            for (int y = 0; y < clusters; y++) { // for each cluster other than the best
+                if (y != best_cluster) {
+                    double dist = calc.calculateDistance(input.lines[ lastState[best_cluster].indices[x]].curve, (*lastState[y].center).curve);
+                    if (dist < mindist) {
+                        mindist = dist;
+                        secondbest_cluster = y;
+                    }
+                }
+            }
+
+            // second best is now known
+
+            // find avg distance from best cluster points
+
+            double a = 0;
+
+            for (unsigned x2 = 0; x2 < lastState[best_cluster].indices.size(); x2++) { // for each point of the best cluster
+                a += calc.calculateDistance(input.lines[ lastState[best_cluster].indices[x]].curve, input.lines[lastState[best_cluster].indices[x2]].curve);
+            }
+
+            if (lastState[best_cluster].indices.size() > 0) {
+                a /= (lastState[best_cluster].indices.size());
+            }
+
+            // find avg distance from second best cluster points
+
+            double b = 0;
+
+            for (unsigned x2 = 0; x2 < lastState[secondbest_cluster].indices.size(); x2++) { // for each point of the best cluster
+                b += calc.calculateDistance(input.lines[ lastState[best_cluster].indices[x]].curve, input.lines[lastState[secondbest_cluster].indices[x2]].curve);
+            }
+
+            if (lastState[secondbest_cluster].indices.size() > 0) {
+                b /= lastState[secondbest_cluster].indices.size();
+            }
+
+            double s = 0;
+
+            if (max(b, a) != 0) {
+                s = (b - a) / max(b, a);
+            }
+
+
+            avg_s += s;
+            counter++;
+        }
+
+        if (counter > 0) {
+            avg_s /= counter;
+        }
+
+        lastState[best_cluster].silhouette = avg_s;
+    }
+}
+// ------------------------------------ Curves --------------------------------
+
+ClusteringSolver::Cluster * ClusteringSolver::lloyd_with_curves(int clusters, int t[]) { // LLoyed/Mean curve
+    DistanceCalculator calc(false);
+
+    algorithm = "Lloyd";
+
+    int n = (int) input.lines.size();
+
+    // ----------------------------------
+    //          1. Initialization
+    // ----------------------------------
+    ClusteringSolver::Cluster * currentState = initialization_with_curves(clusters);
+
+    printInitialState(currentState, clusters);
+
+    auto start = chrono::steady_clock::now();
+
+    for (int counter = 0; counter < 20; counter++) { // Clustering loop
+        // ----------------------------------
+        //          2. Assignment
+        // ----------------------------------
+
+        cout << "Assignment ... " << endl;
+        for (int x = 0; x < n; x++) { // for each item
+            float mindist = FLT_MAX;
+            int mincluster = 0;
+
+            for (int y = 0; y < clusters; y++) { // for each cluster
+                double dist = calc.calculateDistance(input.lines[x].curve, (currentState[y].center->curve));
+                if (dist < mindist) {
+                    mindist = dist;
+                    mincluster = y;
+                }
+            }
+
+            currentState[mincluster].indices.push_back(x);
+        }
+
+         print(currentState, clusters, false, nullptr);
+         
+        // ----------------------------------
+        //          3. Update
+        // ----------------------------------
+        if (counter < 19) {
+            ClusteringSolver::Cluster * nextState = update_with_curves(currentState, clusters);
+
+            delete [] currentState;
+
+            currentState = nextState;
+        }
+    }
+
+    auto end = chrono::steady_clock::now();
+
+    t[0] = chrono::duration_cast<chrono::nanoseconds>(end - start).count();
+
+    return currentState;
+}
+
+ClusteringSolver::Cluster * ClusteringSolver::lsh_frechet_with_curves(int clusters, int t[], int nohashtables, int noFunctions, int W, double delta) { // LSH Frechet/mean curve;
+    DistanceCalculator calc(false);
+    
+    unsigned d = input.lines[0].data.size();
+ 
+    algorithm = "LSH_Frechet";
+
+    // ---------------------------------------
+    //          1a. Initialization - Kmeans++
+    // ---------------------------------------
+    ClusteringSolver::Cluster * currentState = initialization_with_curves(clusters);
+
+    printInitialState(currentState, clusters);
+
+    int n = (int) input.lines.size();
+
+    // ---------------------------------------
+    //          1b. Initialization - LSH
+    // ---------------------------------------
+
+    int T = n / 8;
+
+    NearestNeighbourSolver solver(input);
+
+    HashTableCurve * hashtables = new HashTableCurve[nohashtables];
+
+    for (int i = 0; i < nohashtables; i++) {
+        hashtables[i].setup(T, noFunctions, W, d, delta);
+    }
+    
+    for (unsigned int i = 0; i < input.lines.size(); i++) {
+        input.lines[i].curve.setup(input.lines[i].data); // vector to curve
+    }
+
+    for (unsigned int i = 0; i < input.lines.size(); i++) {
+        for (int l = 0; l < nohashtables; l++) {
+            hashtables[l].add(&input.lines[i], 2*d);
+        }
+    }
+    
+    auto start = chrono::steady_clock::now();
+
+
+    // ----------------------------------------------------
+    //          1c. Initialization - Reverse approach LSH
+    // ----------------------------------------------------
+    map<int, int> item_cluster; // item -> cluster_id
+    map<int, float> item_distance; // item -> distance from cluster
+    map<int, double> item_loop_found; // item -> radius found
+
+    for (unsigned i = 0; i < input.lines.size(); i++) {
+        item_loop_found[i] = -1;
+    }
+
+    bool change;
+
+    for (int counter = 0; counter < 20; counter++) { // Clustering loop
+
+        // ----------------------------------
+        //          2. Assignment
+        // ----------------------------------
+        cout << "Assignment ... " << endl;
+
+        for (unsigned i = 0; i < input.lines.size(); i++) {
+            item_distance[i] = FLT_MAX;
+            item_cluster[i] = -1;
+        }
+
+        DataSet query;
+
+        for (int i = 0; i < clusters; i++) {
+            query.lines.push_back(*currentState[i].center);
+        }
+
+        double R = DBL_MAX;
+
+
+        for (int i = 0; i < clusters; i++) {
+            for (int j = 0; j < clusters; j++) {
+                if (i == j) {
+                    continue;
+                }
+
+                double dist = calc.calculateDistance(currentState[i].center->curve, currentState[j].center->curve);
+
+                if (dist < R) {
+                    R = dist;
+                }
+            }
+        }
+
+        R = R / 2;
+
+        change = true;
+
+        while (change == true) { // Reverse approach loop
+            change = false;
+
+            cout << "Scanning in R = " << R << endl;
+
+            vector<NearestNeighbourSolver::NearestNeighbor> * result_lsh = solver.frechet(hashtables, query, nohashtables, T, noFunctions, W, delta);
+
+            //            cout << "result lsh " << R << endl;
+
+            for (int cluster_id = 0; cluster_id < clusters; cluster_id++) {
+                unsigned j = 0;
+
+                cout << result_lsh[cluster_id].size() << endl;
+                while (j < result_lsh[cluster_id].size() && sqrt(result_lsh[cluster_id][j].distance) <= R) {
+                    //                    cout << "loop j = " << j << endl;
+                    int index = result_lsh[cluster_id][j].index;
+
+                    if (item_cluster[index] == -1) { // first time discovered
+                        item_cluster[index] = cluster_id;
+                        item_distance[index] = result_lsh[cluster_id][j].distance;
+                        item_loop_found[index] = R;
+                        change = true;
+                        //                        cout << "change " << endl;
+                    } else if (item_cluster[index] == cluster_id) { // already discovered by me
+                        // do nothing
+                        //                        cout << "nothing to me" << endl;
+                    } else { // discovered by someone else
+                        if (item_loop_found[index] < R) {
+                            // do nothing
+                            //                            cout << "nothing R" << endl;
+                        } else if (item_loop_found[index] == R) {
+                            double dist = calc.calculateDistance(input.lines[index].curve, (currentState[cluster_id].center->curve));
+                            if (dist < item_loop_found[index]) {
+                                item_cluster[index] = cluster_id;
+                                item_distance[index] = result_lsh[cluster_id][j].distance;
+                                item_loop_found[index] = R;
+                                change = true;
+                                //                                cout << "change " << endl;
+                            }
+                        }
+                    }
+                    j++;
+                }
+            }
+
+            R = R * 2;
+        }
+
+        cout << " --- lloyd --- " << endl;
+
+        for (map<int, int>::iterator it = item_cluster.begin(); it != item_cluster.end(); ++it) {
+            if (it->second == -1) { // point not assigned to anyone
+                int x = it->first;
+                float mindist = FLT_MAX;
+                int mincluster = 0;
+
+                for (int y = 0; y < clusters; y++) { // for each cluster
+                    double dist = calc.calculateDistance(input.lines[x].curve, (currentState[y].center->curve));
+                    if (dist < mindist) {
+                        mindist = dist;
+                        mincluster = y;
+                    }
+                }
+
+                currentState[mincluster].indices.push_back(x);
+            } else {
+                currentState[it->second].indices.push_back(it->first);
+            }
+        }
+
+        // ----------------------------------
+        //          3. Update
+        // ----------------------------------
+
+        if (counter < 19) {
+            ClusteringSolver::Cluster * nextState = update_with_curves(currentState, clusters);
+
+            delete [] currentState;
+
+            currentState = nextState;
+        }
+    }
+
+
+    auto end = chrono::steady_clock::now();
+
+    t[0] = chrono::duration_cast<chrono::nanoseconds>(end - start).count();
+
+    delete [] hashtables;
+
+    return currentState;
+}
+
+ClusteringSolver::Cluster * ClusteringSolver::initialization_with_curves(int clusters) {
+    int n = (int) input.lines.size();
+    int d = input.lines[0].getDimension();
+
+    cout << "Initialization ... " << endl;
+
+    for (unsigned int i = 0; i < input.lines.size(); i++) {
+        input.lines[i].curve.setup(input.lines[i].data); // vector to curve
+    }
+
+    ClusteringSolver::Cluster * initialState = new ClusteringSolver::Cluster[clusters]();
+
+    DistanceCalculator calc(false);
+
+    for (int i = 0; i < clusters; i++) {
+        if (i == 0) { // first centroid
+            int index = urandom(0, n - 1);
+            initialState[0].center = new DataLine();
+
+            for (int i = 0; i < d; i++) {
+                initialState[0].center->data.push_back(input.lines[index].data[i]);
+            }
+
+            initialState[0].center->curve.setup(initialState[0].center->data);
+
+            cout << "Picked: " << index << endl;
+        } else {
+            float * pr = new float[n];
+
+            for (int x = 0; x < n; x++) { // for each item
+                float mindist = FLT_MAX;
+
+                for (int y = 0; y < i; y++) {
+                    double dist = calc.calculateDistance(input.lines[x].curve, initialState[y].center->curve);
+                    if (dist < mindist) {
+                        mindist = dist;
+                    }
+                }
+
+                if (x == 0) {
+                    pr[x] = mindist;
+                } else {
+                    pr[x] = mindist + pr[x - 1];
+                }
+            }
+
+            float min = 0.0f;
+            float max = pr[n - 1];
+
+            //            cout << "min: " << min << ", max: " << max << endl;
+
+            float r = urandomf(min, max);
+            int x;
+
+            for (x = 0; x < n; x++) { // for each item
+                if (r <= pr[x] && (x == 0 || pr[x - 1] < r)) {
+                    break;
+                }
+            }
+
+            int index = x;
+            initialState[i].center = new DataLine();
+
+            for (int j = 0; j < d; j++) {
+                initialState[i].center->data.push_back(input.lines[index].data[j]);
+            }
+
+            initialState[i].center->curve.setup(initialState[i].center->data);
+
+            delete [] pr;
+
+            cout << "Picked: " << index << endl;
+        }
+    }
+
+    return initialState;
+}
+
+ClusteringSolver::Cluster * ClusteringSolver::update_with_curves(ClusteringSolver::Cluster * now, int clusters) {
+    ClusteringSolver::Cluster * nextState = new ClusteringSolver::Cluster[clusters]();
+
+    cout << "Update ... " << endl;
+
+    DistanceCalculator calc(false);
+
+    for (int y = 0; y < clusters; y++) { // for each cluster
+        if (now[y].indices.size() <= 1) {
+            nextState[y].center = now[y].center;
+        } else {
+            nextState[y].center = new DataLine();
+
+            stack<DataCurve* > * stackA = new stack<DataCurve* >();
+
+            for (unsigned i = 0; i < now[y].indices.size(); i++) {
+                int index = now[y].indices[i];
+                stackA->push(&input.lines[index].curve);
+            }
+
+            do {
+                stack<DataCurve* > * stackB = new stack<DataCurve* >();
+
+                while (stackA->size() > 1) {
+                    DataCurve * c1 = stackA->top();
+                    stackA->pop();
+                    DataCurve * c2 = stackA->top();
+                    stackA->pop();
+
+                    DataCurve* c3 = calc.meanCurve(*c1, *c2);
+
+                    stackB->push(c3);
+                }
+
+                while (stackA->size() > 0) {
+                    DataCurve * c1 = stackA->top();
+                    stackA->pop();
+                    stackB->push(c1);
+                }
+
+                delete stackA;
+
+                stackA = stackB;
+            } while (stackA->size() > 1);
+
+            DataCurve* datacurve = stackA->top();
+            stackA->pop();
+
+            nextState[y].center->curve = *datacurve;
+
+            delete stackA;
+        }
+    }
+
+    return nextState;
 }

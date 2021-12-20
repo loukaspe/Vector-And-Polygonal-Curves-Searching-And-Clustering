@@ -6,7 +6,7 @@
 
 using namespace std;
 
-void FileReader::load(string file) {
+void FileReader::load(string file, int maxbound) {
     set.lines.clear();
 
     ifstream file_handler;
@@ -33,6 +33,10 @@ void FileReader::load(string file) {
             while (ss >> token) {
                 dataline.data.push_back(token);
                 d++;
+            }
+                                                            
+            if (maxbound != -1 && (int)dataline.data.size() > maxbound) {
+                dataline.data.resize(maxbound);
             }
             
             set.lines.push_back(dataline);

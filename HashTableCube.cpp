@@ -7,18 +7,18 @@
 
 using namespace std;
 
-vector<int> HashTableCube::getRelativeBuckets(int x, int probes, int bits) {
+vector<int> HashTableCube::getRelativeBuckets(int x, int max_points_to_control, int probes, int bits) {
     vector<int> buckets;
     int numberOfBits;
     int i = 0;
 
-    while(true){
+    while (true) {
         numberOfBits = this->countBits(i);
         if (numberOfBits > bits) {
             break;
         }
 
-        if(this->calculateHammingDistance(x, i) <= probes) {
+        if (this->calculateHammingDistance(x, i) <= probes) {
             buckets.push_back(i);
         }
 
@@ -33,40 +33,24 @@ HashTableCube::HashTableCube() {
 }
 
 HashTableCube::~HashTableCube() {
-    delete [] g;
-
-    for (int j = 0; j < k; j++) {
-        delete [] h[j];
-    }
     delete [] h;
-    
+
     delete [] f;
 }
 
-void HashTableCube::setup(int _t, int _no_of_g, int _k, int W, int d) {
+void HashTableCube::setup(int _k, int W, int d) {
     k = _k;
-    T = _t;
-    no_of_g = _no_of_g;
+    T = 1 << k;
 
-    g = new HashFunctionG[no_of_g];
+    f = new HashFunctionF[k]();
 
-    for (int i = 0; i < no_of_g; i++) {
-        g[i].setup(k);
+    h = new HashFunctionH[k]();
+
+    for (int i = 0; i < k; i++) {
+        h[i].setup(W, d);
     }
 
-    f = new HashFunctionF[no_of_g];
-
-    h = new HashFunctionH*[no_of_g];
-
-    for (int i = 0; i < no_of_g; i++) {
-        h[i] = new HashFunctionH[_k];
-
-        for (int j = 0; j < _k; j++) {
-            h[i][j].setup(W, d);
-        }
-    }
-
-    for (int i = 0; i < _t; i++) {
+    for (int i = 0; i < T; i++) {
         table.push_back(vector<HashItem>());
     }
 }
@@ -74,51 +58,52 @@ void HashTableCube::setup(int _t, int _no_of_g, int _k, int W, int d) {
 void HashTableCube::add(DataLine * line) {
     int bucket = 0;
 
-    for (int i = 0; i < no_of_g; i++) {
-        int hi[k] = {0};
+    int hi[k] = {0};
+    int fi[k] = {0};
 
-        for (int j = 0; j < k; j++) {
-            hi[j] = h[i][j].value(*line);
+    for (int i = 0; i < k; i++) {
+        if (i > 0) {
+            bucket = bucket << 1;
         }
+        hi[i] = h[i].value(*line);
+        fi[i] = f[i].value(hi[i]);
 
-        unsigned g_output = g[i].value(hi);
-        unsigned bit = f[i].value(g_output); // 0 or 1
+        unsigned bit = fi[i]; // 0 or 1
 
         bucket += bit;
-        bucket = bucket << 1;        
     }
 
     HashItem item;
     item.g = bucket;
     item.addr = line;
 
-
     table[bucket].push_back(item);
 }
 
-set<int> HashTableCube::getNeighbors(DataLine & query, int probes) {
+set<int> HashTableCube::getNeighbors(DataLine & query, int max_points_to_control, int probes) {
     set<int> offsets;
 
     int bucket = 0;
 
-    for (int i = 0; i < no_of_g; i++) {
-        int hi[k] = {0};
+    int hi[k] = {0};
+    int fi[k] = {0};
 
-        for (int j = 0; j < k; j++) {
-            hi[j] = h[i][j].value(query);
+    for (int i = 0; i < k; i++) {
+        if (i > 0) {
+            bucket = bucket << 1;
         }
+        hi[i] = h[i].value(query);
+        fi[i] = f[i].value(hi[i]);
 
-        unsigned g_output = g[i].value(hi);
-        unsigned bit = f[i].value(g_output); // 0 or 1
+        unsigned bit = fi[i]; // 0 or 1
 
         bucket += bit;
-        bucket = bucket << 1;        
     }
 
-    
-    vector<int> buckets = getRelativeBuckets(bucket, probes, no_of_g);
-    
-    for (unsigned int i=0;i<buckets.size();i++) {
+
+    vector<int> buckets = getRelativeBuckets(bucket, max_points_to_control, probes, k);
+
+    for (unsigned int i = 0; i < buckets.size(); i++) {
         int bucket = buckets[i];
         for (unsigned int i = 0; i < table[bucket].size(); i++) {
             offsets.insert(table[bucket][i].addr->offset);
@@ -140,11 +125,9 @@ int HashTableCube::calculateHammingDistance(int n1, int n2) {
     return setBits;
 }
 
-int HashTableCube::countBits(unsigned int number)
-{
+int HashTableCube::countBits(unsigned int number) {
     unsigned int count = 0;
-    while (number)
-    {
+    while (number) {
         count++;
         number >>= 1;
     }
